@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "skills": {
+    "clerk-nextjs-patterns": {
+      "source": "clerk/skills",
+      "sourceType": "github",
+      "skillPath": "skills/frameworks/clerk-nextjs-patterns/SKILL.md",
+      "computedHash": "cdcb9f08d567058fca7563ad8c67a4a2a2f3b9f286294e1caeb1ea5407dfebc6"
+    },
+    "nextjs-code-review": {
+      "source": "giuseppe-trisciuoglio/developer-kit",
+      "sourceType": "github",
+      "skillPath": "plugins/developer-kit-typescript/skills/nextjs-code-review/SKILL.md",
+      "computedHash": "69a2aa27e15438d6c380f0ba0f97b6e770f7f27a1b4e139a5989f84c69223a57"
+    },
+    "nextjs-data-fetching": {
+      "source": "giuseppe-trisciuoglio/developer-kit",
+      "sourceType": "github",
+      "skillPath": "plugins/developer-kit-typescript/skills/nextjs-data-fetching/SKILL.md",
+      "computedHash": "868240fba1ebd9f9aba3fa9761327aa587f693aeffd88246bce34e1bccfe1958"
+    },
+    "nextjs-performance": {
+      "source": "giuseppe-trisciuoglio/developer-kit",
+      "sourceType": "github",
+      "skillPath": "plugins/developer-kit-typescript/skills/nextjs-performance/SKILL.md",
+      "computedHash": "e7aacb7a0f57077fd7494a5c3b633cbc6a351463142acb1101a7f85570e20ace"
+    },
+    "nextjs-shadcn": {
+      "source": "laguagu/claude-code-nextjs-skills",
+      "sourceType": "github",
+      "skillPath": "skills/nextjs-shadcn/SKILL.md",
+      "computedHash": "e756048b46b2737b80c71f0271e0ba866aba3b49bfe750ea5485c65554142abf"
+    },
+    "optimized-nextjs-typescript": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "optimized-nextjs-typescript/SKILL.md",
+      "computedHash": "d94268ecf8422b888b64b8db78894aad3bda5a3c750f06d540a5398d7b47863d"
+    }
+  }
+}
