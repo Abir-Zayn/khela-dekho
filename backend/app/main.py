@@ -1,6 +1,7 @@
 import pathlib
 from fastapi import FastAPI, Request, HTTPException, status
-from fastapi.responses import HTMLResponse
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -13,6 +14,18 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.exception_handler(RequestValidationError)
+def validation_exception_handler(request: Request, exc: RequestValidationError):
+    if request.url.path.startswith("/api"):
+        return JSONResponse(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            content={"detail": exc.errors(), "body": exc.body},
+        )
+    return HTMLResponse(
+        content="<h1>422 Unprocessable Entity</h1><p>Request validation failed.</p>",
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY
+    )
 
 BASE_DIR = pathlib.Path(__file__).resolve().parent.parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
