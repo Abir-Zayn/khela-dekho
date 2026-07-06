@@ -7,7 +7,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
-from app.schemas import PostCreate, PostResponse
+from app.schemas import PostCreate, PostResponse, PostUpdate
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -18,6 +18,9 @@ from app.database import Base, engine, get_db
 
 
 app = FastAPI()
+
+# Create database tables
+Base.metadata.create_all(bind=engine)
 
 app.add_middleware(
     CORSMiddleware,
@@ -42,56 +45,12 @@ def validation_exception_handler(request: Request, exc: RequestValidationError):
 BASE_DIR = pathlib.Path(__file__).resolve().parent.parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
-posts: list[dict] = [
-    {
-        "id": 1,
-        "author": "Corey Schafer",
-        "title": "FastAPI is Awesome",
-        "content": "This framework is really easy to use and super fast.",
-        "date_posted": "April 20, 2025",
-    },
-    {
-        "id": 2,
-        "author": "Jane Doe",
-        "title": "Python Tips and Tricks",
-        "content": "Exploring the power of list comprehensions and decorators.",
-        "date_posted": "May 12, 2026",
-    },
-    {
-        "id": 3,
-        "author": "John Smith",
-        "title": "Understanding AsyncIO",
-        "content": "Concurrency can be tricky, but it's essential for high-performance apps.",
-        "date_posted": "June 05, 2026",
-    },
-    {
-        "id": 4,
-        "author": "Alice Johnson",
-        "title": "Database Migrations",
-        "content": "Managing schema changes with Alembic made simple.",
-        "date_posted": "July 01, 2026",
-    },
-    {
-        "id": 5,
-        "author": "Bob Brown",
-        "title": "Introduction to Docker",
-        "content": "Containerization is revolutionizing development. Let's dive in.",
-        "date_posted": "August 15, 2026",
-    },
-    {
-        "id": 6,
-        "author": "Charlie Davis",
-        "title": "REST API Best Practices",
-        "content": "How to design clean, scalable APIs that developers will love.",
-        "date_posted": "September 3, 2026",
-    }
-]
-
 @app.get("/", include_in_schema=False, name="home")
 @app.get("/posts", include_in_schema=False, name="posts")
-def home(request: Request):
+def home(request: Request, db: Annotated[Session, Depends(get_db)]):
+    db_posts = db.execute(select(models.Post)).scalars().all()
     return templates.TemplateResponse(request, "home.html",{
-        "posts": posts
+        "posts": db_posts
     })
 
     
@@ -154,36 +113,87 @@ def get_user(user_id:int, db: Annotated[Session, Depends(get_db)]):
 
 
 @app.get('/api/posts' , response_model=list[PostResponse])
-def get_posts():
-    return posts
+def get_posts(db: Annotated[Session, Depends(get_db)]):
+    results = db.execute(select(models.Post))
+    return results.scalars().all()
 
 
 @app.get('/api/posts/{post_id}', response_model=PostResponse)
-def get_posts_by_id(post_id: int):
-    for post in posts:
-        if post.get('id') == post_id:
-            return post
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+def get_posts_by_id(post_id: int, db: Annotated[Session, Depends(get_db)]):
+    post = db.execute(
+        select(models.Post).where(models.Post.id == post_id)
+    ).scalars().first()
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+    return post
 
 
 @app.post('/api/posts', response_model=PostResponse, status_code=status.HTTP_201_CREATED)
-def create_post(post: PostCreate):
-    new_id = max(p['id'] for p in posts) + 1
-    new_post = {
-        "id": new_id,
-        "author": post.author,
-        "title": post.title,
-        "content": post.content,
-        "date_posted": "13 April 2025"
-    }
-    posts.append(new_post)
+def create_post(post: PostCreate, db: Annotated[Session, Depends(get_db)]):
+    # Verify that the user exists
+    user = db.execute(
+        select(models.User).where(models.User.id == post.user_id)
+    ).scalars().first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User (author) not found"
+        )
+    
+    new_post = models.Post(
+        title=post.title,
+        content=post.content,
+        user_id=post.user_id
+    )
+    db.add(new_post)
+    db.commit()
+    db.refresh(new_post)
     return new_post
 
 
+@app.put('/api/posts/{post_id}', response_model=PostResponse)
+def update_post(post_id: int, post_data: PostUpdate, db: Annotated[Session, Depends(get_db)]):
+    post = db.execute(
+        select(models.Post).where(models.Post.id == post_id)
+    ).scalars().first()
+    if not post:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Post not found"
+        )
+    
+    if post_data.title is not None:
+        post.title = post_data.title
+    if post_data.content is not None:
+        post.content = post_data.content
+        
+    db.commit()
+    db.refresh(post)
+    return post
 
-@app.get('/api/posts/author/{author}')
-def get_posts_by_author(author: str):
-    author_posts = [post for post in posts if post.get('author') == author]
+
+@app.delete('/api/posts/{post_id}', status_code=status.HTTP_204_NO_CONTENT)
+def delete_post(post_id: int, db: Annotated[Session, Depends(get_db)]):
+    post = db.execute(
+        select(models.Post).where(models.Post.id == post_id)
+    ).scalars().first()
+    if not post:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Post not found"
+        )
+    
+    db.delete(post)
+    db.commit()
+    return None
+
+
+@app.get('/api/posts/author/{author}', response_model=list[PostResponse])
+def get_posts_by_author(author: str, db: Annotated[Session, Depends(get_db)]):
+    results = db.execute(
+        select(models.Post).join(models.User).where(models.User.username == author)
+    )
+    author_posts = results.scalars().all()
     if author_posts:
         return author_posts
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Posts by author not found")

@@ -16,7 +16,7 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
 
     # Relationships
-    posts: Mapped[list[Post]] = relationship(back_populates="author", cascade="all, delete-orphan")
+    posts: Mapped[list[Post]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
 class Post(Base):
@@ -37,5 +37,9 @@ class Post(Base):
     likes: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     
     # Relationships
-    author: Mapped[User] = relationship(back_populates="posts")
+    user: Mapped[User] = relationship(back_populates="posts")
+
+    @property
+    def author(self) -> str:
+        return self.user.username if self.user else ""
     
