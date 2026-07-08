@@ -1,26 +1,38 @@
-from typing import Annotated
-from app.schemas import UserCreate
-from app.schemas import UserResponse
 import pathlib
-from fastapi import Depends, FastAPI, Request, HTTPException, status
+from contextlib import asynccontextmanager
+from typing import Annotated
+
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-from fastapi.middleware.cors import CORSMiddleware
-from app.schemas import PostCreate, PostResponse, PostUpdate
 from sqlalchemy import select
-from sqlalchemy.orm import Session
-from starlette.exceptions import HTTPException as StarletteHTTPException
-
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app import models
 from app.database import Base, engine, get_db
+from app.schemas import PostCreate, PostResponse, PostUpdate, UserCreate, UserResponse
 
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Application lifespan manager for starting and stopping the application asynchronously.
+    """
+    # Startup: Create tables asynchronously
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    
+    # Yield control to the application
+    yield 
 
-# Create database tables
-Base.metadata.create_all(bind=engine)
+    # Shutdown: Dispose engine connection pool
+    await engine.dispose()
+
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -29,6 +41,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.exception_handler(RequestValidationError)
 def validation_exception_handler(request: Request, exc: RequestValidationError):
@@ -42,42 +55,50 @@ def validation_exception_handler(request: Request, exc: RequestValidationError):
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY
     )
 
+
 BASE_DIR = pathlib.Path(__file__).resolve().parent.parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
+
 @app.get("/", include_in_schema=False, name="home")
 @app.get("/posts", include_in_schema=False, name="posts")
-def home(request: Request, db: Annotated[Session, Depends(get_db)]):
-    db_posts = db.execute(select(models.Post)).scalars().all()
-    return templates.TemplateResponse(request, "home.html",{
-        "posts": db_posts
-    })
+async def home(request: Request, db: Annotated[AsyncSession, Depends(get_db)]):
+    db_posts = await db.execute(
+        select(models.Post).options(selectinload(models.Post.user))
+    )
+    posts = db_posts.scalars().all()
+    return templates.TemplateResponse(
+        request, 
+        "home.html",
+        {"posts": posts}
+    )
 
-    
 
-## Creating api endpoint 
+# ==========================================
+# API Endpoints (Fully Asynchronous)
+# ==========================================
 
+# -------- User Endpoints --------
 
 @app.post(
     "/api/users",
     response_model=UserResponse,
     status_code=status.HTTP_201_CREATED
 )
-def create_user(user:UserCreate, db: Annotated[Session,Depends(get_db)]):
-    existing_user = db.execute(
-        select(models.User).where(models.User.username == user.username),
-    ).scalars().first()
-
-    if existing_user:
+async def create_user(user: UserCreate, db: Annotated[AsyncSession, Depends(get_db)]):
+    res_user = await db.execute(
+        select(models.User).where(models.User.username == user.username)
+    )
+    if res_user.scalars().first():
         raise HTTPException(
-            status_code = status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="Username already exists",
         )
     
-    existing_email = db.execute(
-        select(models.User).where(models.User.email == user.email),
-    ).scalars().first()
-    if existing_email:
+    res_email = await db.execute(
+        select(models.User).where(models.User.email == user.email)
+    )
+    if res_email.scalars().first():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email Already Exists."
@@ -90,50 +111,56 @@ def create_user(user:UserCreate, db: Annotated[Session,Depends(get_db)]):
     )
 
     db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+    await db.commit()
+    await db.refresh(new_user)
 
     return new_user 
 
 
-
 @app.get("/api/users/{user_id}", response_model=UserResponse)
-def get_user(user_id:int, db: Annotated[Session, Depends(get_db)]):
-    existing_user = db.execute(
+async def get_user(user_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
+    res = await db.execute(
         select(models.User).where(models.User.id == user_id)
-    ).scalars().first()
-    if not existing_user:
+    )
+    user = res.scalars().first()
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
         )
-    return existing_user
+    return user
 
 
+# -------- Post Endpoints --------
 
-
-@app.get('/api/posts' , response_model=list[PostResponse])
-def get_posts(db: Annotated[Session, Depends(get_db)]):
-    results = db.execute(select(models.Post))
+@app.get('/api/posts', response_model=list[PostResponse])
+async def get_posts(db: Annotated[AsyncSession, Depends(get_db)]):
+    results = await db.execute(
+        select(models.Post).options(selectinload(models.Post.user))
+    )
     return results.scalars().all()
 
 
 @app.get('/api/posts/{post_id}', response_model=PostResponse)
-def get_posts_by_id(post_id: int, db: Annotated[Session, Depends(get_db)]):
-    post = db.execute(
-        select(models.Post).where(models.Post.id == post_id)
-    ).scalars().first()
+async def get_posts_by_id(post_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
+    res = await db.execute(
+        select(models.Post)
+        .options(selectinload(models.Post.user))
+        .where(models.Post.id == post_id)
+    )
+    post = res.scalars().first()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
     return post
 
 
 @app.post('/api/posts', response_model=PostResponse, status_code=status.HTTP_201_CREATED)
-def create_post(post: PostCreate, db: Annotated[Session, Depends(get_db)]):
-    # Verify that the user exists
-    user = db.execute(
+async def create_post(post: PostCreate, db: Annotated[AsyncSession, Depends(get_db)]):
+    # Verify that the user (author) exists
+    res_user = await db.execute(
         select(models.User).where(models.User.id == post.user_id)
-    ).scalars().first()
+    )
+    user = res_user.scalars().first()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -146,16 +173,26 @@ def create_post(post: PostCreate, db: Annotated[Session, Depends(get_db)]):
         user_id=post.user_id
     )
     db.add(new_post)
-    db.commit()
-    db.refresh(new_post)
-    return new_post
+    await db.commit()
+    await db.refresh(new_post)
+
+    # Re-fetch post with loaded user relationship for response serialization
+    res_post = await db.execute(
+        select(models.Post)
+        .options(selectinload(models.Post.user))
+        .where(models.Post.id == new_post.id)
+    )
+    return res_post.scalars().first()
 
 
 @app.put('/api/posts/{post_id}', response_model=PostResponse)
-def update_post(post_id: int, post_data: PostUpdate, db: Annotated[Session, Depends(get_db)]):
-    post = db.execute(
-        select(models.Post).where(models.Post.id == post_id)
-    ).scalars().first()
+async def update_post(post_id: int, post_data: PostUpdate, db: Annotated[AsyncSession, Depends(get_db)]):
+    res = await db.execute(
+        select(models.Post)
+        .options(selectinload(models.Post.user))
+        .where(models.Post.id == post_id)
+    )
+    post = res.scalars().first()
     if not post:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -167,31 +204,42 @@ def update_post(post_id: int, post_data: PostUpdate, db: Annotated[Session, Depe
     if post_data.content is not None:
         post.content = post_data.content
         
-    db.commit()
-    db.refresh(post)
-    return post
+    await db.commit()
+    await db.refresh(post)
+
+    # Ensure user relationship is loaded
+    res_post = await db.execute(
+        select(models.Post)
+        .options(selectinload(models.Post.user))
+        .where(models.Post.id == post.id)
+    )
+    return res_post.scalars().first()
 
 
 @app.delete('/api/posts/{post_id}', status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(post_id: int, db: Annotated[Session, Depends(get_db)]):
-    post = db.execute(
+async def delete_post(post_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
+    res = await db.execute(
         select(models.Post).where(models.Post.id == post_id)
-    ).scalars().first()
+    )
+    post = res.scalars().first()
     if not post:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Post not found"
         )
     
-    db.delete(post)
-    db.commit()
+    await db.delete(post)
+    await db.commit()
     return None
 
 
 @app.get('/api/posts/author/{author}', response_model=list[PostResponse])
-def get_posts_by_author(author: str, db: Annotated[Session, Depends(get_db)]):
-    results = db.execute(
-        select(models.Post).join(models.User).where(models.User.username == author)
+async def get_posts_by_author(author: str, db: Annotated[AsyncSession, Depends(get_db)]):
+    results = await db.execute(
+        select(models.Post)
+        .options(selectinload(models.Post.user))
+        .join(models.User)
+        .where(models.User.username == author)
     )
     author_posts = results.scalars().all()
     if author_posts:
