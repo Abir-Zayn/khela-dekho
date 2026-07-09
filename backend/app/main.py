@@ -13,7 +13,7 @@ from sqlalchemy.orm import selectinload
 
 from app import models
 from app.database import Base, engine, get_db
-from app.routers import posts, users
+from app.routers import posts, users,auth
 
 
 @asynccontextmanager
@@ -63,7 +63,7 @@ templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 # Include API Routers
 app.include_router(users.router)
 app.include_router(posts.router)
-
+app.include_router(auth.router)
 
 @app.get("/", include_in_schema=False, name="home")
 @app.get("/posts", include_in_schema=False, name="posts")
