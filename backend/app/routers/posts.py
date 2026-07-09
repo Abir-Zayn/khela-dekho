@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-
+import uuid
 from app import models
 from app.database import get_db
 from app.schemas import PostCreate, PostResponse, PostUpdate
@@ -24,7 +24,7 @@ async def get_posts(db: Annotated[AsyncSession, Depends(get_db)]):
 
 
 @router.get("/{post_id}", response_model=PostResponse)
-async def get_posts_by_id(post_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
+async def get_posts_by_id(post_id: uuid.UUID, db: Annotated[AsyncSession, Depends(get_db)]):
     res = await db.execute(
         select(models.Post)
         .options(selectinload(models.Post.user))
@@ -71,7 +71,7 @@ async def create_post(post: PostCreate, db: Annotated[AsyncSession, Depends(get_
 
 
 @router.put("/{post_id}", response_model=PostResponse)
-async def update_post(post_id: int, post_data: PostUpdate, db: Annotated[AsyncSession, Depends(get_db)]):
+async def update_post(post_id: uuid.UUID, post_data: PostUpdate, db: Annotated[AsyncSession, Depends(get_db)]):
     res = await db.execute(
         select(models.Post)
         .options(selectinload(models.Post.user))
@@ -108,7 +108,7 @@ async def update_post(post_id: int, post_data: PostUpdate, db: Annotated[AsyncSe
 
 
 @router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_post(post_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
+async def delete_post(post_id: uuid.UUID, db: Annotated[AsyncSession, Depends(get_db)]):
     res = await db.execute(
         select(models.Post).where(models.Post.id == post_id)
     )

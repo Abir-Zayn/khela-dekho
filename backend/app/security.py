@@ -1,3 +1,4 @@
+import uuid
 from jwt import InvalidTokenError
 from fastapi import status
 from fastapi import HTTPException
@@ -9,7 +10,7 @@ from datetime import datetime
 from datetime import timedelta
 from pwdlib import PasswordHash
 from fastapi.security import OAuth2PasswordBearer
-
+import uuid
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app import models
@@ -39,14 +40,14 @@ def _create_token(subject: str, expires:timedelta, token_type:str) -> str:
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
-def create_access_token(user_id: int)-> str:
+def create_access_token(user_id: uuid.UUID)-> str:
     return _create_token(
         str(user_id),
         timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES),
         "access",
     )
 
-def create_refresh_token(user_id:int)->str:
+def create_refresh_token(user_id:uuid.UUID)->str:
     return _create_token(
         str(user_id),
         timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
@@ -74,13 +75,14 @@ async def get_current_user(
         payload = decode_token(token)
         if payload.get("type") != "access":     # refuse refresh tokens here
             raise credentials_error
-        user_id = payload.get("sub")
-        if user_id is None:
+        sub = payload.get("sub")
+        if sub is None:
             raise credentials_error
+        user_id = uuid.UUID(sub)
     except InvalidTokenError:
         raise credentials_error
 
-    result = await db.execute(select(models.User).where(models.User.id == int(user_id)))
+    result = await db.execute(select(models.User).where(models.User.id == user_id))
     user = result.scalars().first()
     if user is None:
         raise credentials_error

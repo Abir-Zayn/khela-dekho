@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field, EmailStr
-
+import uuid
 
 #-------- User Base --------------
 class UserBase(BaseModel):
@@ -32,7 +32,7 @@ class PostBase(BaseModel):
 # 2. Request Schema: Used for validating incoming POST/PUT request bodies
 # It inherits everything from PostBase. No extra fields are needed for creation.
 class PostCreate(PostBase):
-    user_id: int #TEMPORARY
+    user_id: uuid.UUID
 
 class PostUpdate(BaseModel):
     title: str | None = Field(None, min_length=10, max_length=100)

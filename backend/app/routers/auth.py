@@ -1,3 +1,4 @@
+import uuid
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -50,7 +51,7 @@ async def refresh(body:RefreshRequest):
         payload = decode_token(body.refresh_token)
         if payload.get("type") != "refresh":   # must be a refresh token, not access
             raise ValueError
-        user_id = int(payload["sub"])
+        user_id = uuid.UUID(payload["sub"])
     except (InvalidTokenError,ValueError,KeyError):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

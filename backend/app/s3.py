@@ -14,7 +14,7 @@ s3_client = boto3.client(
 ALLOWED_CONTENT_TYPES= {"image/jpeg", "image/png", "image/webp"}
 MAX_FILE_SIZE_BYTES = 5*1024*1024 #5 mb
 
-def generate_presigned_upload(user_id:int, content_type:str)-> dict:
+def generate_presigned_upload(user_id:uuid.UUID, content_type:str)-> dict:
     if content_type not in ALLOWED_CONTENT_TYPES:
         raise ValueError("Unsupported Content Types")
     
