@@ -35,11 +35,17 @@ class Post(Base):
         default=lambda: datetime.now(UTC),
     )
     likes: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+
+    #Embeded-urls
+    image_url: Mapped[str | None] =mapped_column(String(500), nullable=True)
+    video_url: Mapped[str | None] =mapped_column(String(500), nullable=True)
+    reference_url: Mapped[str | None ] =mapped_column(String(500), nullable=True)
     
     # Relationships
     user: Mapped[User] = relationship(back_populates="posts")
 
     @property
     def author(self) -> str:
+        # pyrefly: ignore [redundant-condition]
         return self.user.username if self.user else ""
     

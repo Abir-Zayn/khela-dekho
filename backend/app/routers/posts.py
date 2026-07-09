@@ -1,3 +1,7 @@
+from app.s3 import generate_presigned_upload
+from app.schemas import UploadURLRequest
+from app.security import get_current_user
+from app.schemas import UploadURLResponse
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
@@ -48,7 +52,10 @@ async def create_post(post: PostCreate, db: Annotated[AsyncSession, Depends(get_
     new_post = models.Post(
         title=post.title,
         content=post.content,
-        user_id=post.user_id
+        user_id=post.user_id,
+        image_url=post.image_url,
+        video_url=post.video_url,
+        reference_url=post.reference_url,
     )
     db.add(new_post)
     await db.commit()
@@ -81,6 +88,12 @@ async def update_post(post_id: int, post_data: PostUpdate, db: Annotated[AsyncSe
         post.title = post_data.title
     if post_data.content is not None:
         post.content = post_data.content
+    if post_data.image_url is not None:
+        post.image_url = post_data.image_url
+    if post_data.video_url is not None:
+        post.video_url = post_data.video_url
+    if post_data.reference_url is not None:
+        post.reference_url = post_data.reference_url
         
     await db.commit()
     await db.refresh(post)
@@ -123,3 +136,15 @@ async def get_posts_by_author(author: str, db: Annotated[AsyncSession, Depends(g
     if author_posts:
         return author_posts
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Posts by author not found")
+
+
+@router.post("/upload-url", response_model=UploadURLResponse)
+async def get_upload_url(
+    body: UploadURLRequest,
+    current_user: Annotated[models.User, Depends(get_current_user)],
+):
+    try:
+        result = generate_presigned_upload(current_user.id, body.content_type)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return result
