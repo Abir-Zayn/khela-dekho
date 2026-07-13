@@ -21,7 +21,10 @@ async def get_posts(
     db: Annotated[AsyncSession, Depends(get_db)],
     q: str | None = None,
 ):
-    stmt = select(models.Post).options(selectinload(models.Post.user))
+    stmt = select(models.Post).options(
+        selectinload(models.Post.user),
+        selectinload(models.Post.category),
+    )
     if q:
         # Perform full-text search using websearch_to_tsquery (Google-like syntax)
         # and order the results by relevance (ts_rank)
@@ -38,7 +41,10 @@ async def get_posts(
 async def get_posts_by_id(post_id: uuid.UUID, db: Annotated[AsyncSession, Depends(get_db)]):
     res = await db.execute(
         select(models.Post)
-        .options(selectinload(models.Post.user))
+        .options(
+            selectinload(models.Post.user),
+            selectinload(models.Post.category),
+        )
         .where(models.Post.id == post_id)
     )
     post = res.scalars().first()
@@ -53,6 +59,16 @@ async def create_post(
     current_user: Annotated[models.User, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
+    if post.category_id:
+        category_res = await db.execute(
+            select(models.Category).where(models.Category.id == post.category_id)
+        )
+        if not category_res.scalars().first():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Category not found",
+            )
+
     new_post = models.Post(
         title=post.title,
         content=post.content,
@@ -60,15 +76,19 @@ async def create_post(
         image_url=post.image_url,
         video_url=post.video_url,
         reference_url=post.reference_url,
+        category_id=post.category_id,
     )
     db.add(new_post)
     await db.commit()
     await db.refresh(new_post)
 
-    # Re-fetch post with loaded user relationship for response serialization
+    # Re-fetch post with loaded relationships for response serialization
     res_post = await db.execute(
         select(models.Post)
-        .options(selectinload(models.Post.user))
+        .options(
+            selectinload(models.Post.user),
+            selectinload(models.Post.category),
+        )
         .where(models.Post.id == new_post.id)
     )
     return res_post.scalars().first()
@@ -83,7 +103,10 @@ async def update_post(
 ):
     res = await db.execute(
         select(models.Post)
-        .options(selectinload(models.Post.user))
+        .options(
+            selectinload(models.Post.user),
+            selectinload(models.Post.category),
+        )
         .where(models.Post.id == post_id)
     )
     post = res.scalars().first()
@@ -110,14 +133,28 @@ async def update_post(
         post.video_url = post_data.video_url
     if post_data.reference_url is not None:
         post.reference_url = post_data.reference_url
+    if post_data.category_id is not None:
+        if post_data.category_id:
+            category_res = await db.execute(
+                select(models.Category).where(models.Category.id == post_data.category_id)
+            )
+            if not category_res.scalars().first():
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Category not found",
+                )
+        post.category_id = post_data.category_id
         
     await db.commit()
     await db.refresh(post)
 
-    # Ensure user relationship is loaded
+    # Ensure user and category relationships are loaded
     res_post = await db.execute(
         select(models.Post)
-        .options(selectinload(models.Post.user))
+        .options(
+            selectinload(models.Post.user),
+            selectinload(models.Post.category),
+        )
         .where(models.Post.id == post.id)
     )
     return res_post.scalars().first()
@@ -149,7 +186,10 @@ async def delete_post(
 async def get_posts_by_author(author: str, db: Annotated[AsyncSession, Depends(get_db)]):
     results = await db.execute(
         select(models.Post)
-        .options(selectinload(models.Post.user))
+        .options(
+            selectinload(models.Post.user),
+            selectinload(models.Post.category),
+        )
         .join(models.User)
         .where(models.User.username == author)
     )

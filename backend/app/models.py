@@ -35,6 +35,17 @@ class User(Base):
     posts: Mapped[list[Post]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
+class Category(Base):
+    __tablename__ = "categories"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid7)
+    name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+    slug: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+
+    # Relationships
+    posts: Mapped[list[Post]] = relationship(back_populates="category", cascade="all, delete-orphan")
+
+
 class Post(Base):
     __tablename__ = "posts"
 
@@ -43,6 +54,9 @@ class Post(Base):
     content: Mapped[str] = mapped_column(Text, nullable=False)
     user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("users.id"), nullable=False, index=True
+    )
+    category_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("categories.id", ondelete="RESTRICT"), nullable=False, index=True
     )
     date_posted: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -69,10 +83,9 @@ class Post(Base):
     
     # Relationships
     user: Mapped[User] = relationship(back_populates="posts")
+    category: Mapped[Category] = relationship(back_populates="posts")
 
     @property
     def author(self) -> str:
         # pyrefly: ignore [redundant-condition]
         return self.user.username if self.user else ""
-
-### C:\office-work\khela-dekho-blog\sports_blog\study_notes
