@@ -5,7 +5,7 @@ from app.security import get_current_user
 from app.schemas import UploadURLResponse
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 import uuid
@@ -17,10 +17,20 @@ router = APIRouter(prefix="/api/posts", tags=["Posts"])
 
 
 @router.get("", response_model=list[PostResponse])
-async def get_posts(db: Annotated[AsyncSession, Depends(get_db)]):
-    results = await db.execute(
-        select(models.Post).options(selectinload(models.Post.user))
-    )
+async def get_posts(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    q: str | None = None,
+):
+    stmt = select(models.Post).options(selectinload(models.Post.user))
+    if q:
+        # Perform full-text search using websearch_to_tsquery (Google-like syntax)
+        # and order the results by relevance (ts_rank)
+        tsquery = func.websearch_to_tsquery("english", q)
+        stmt = (
+            stmt.where(models.Post.search_vector.op("@@")(tsquery))
+            .order_by(func.ts_rank(models.Post.search_vector, tsquery).desc())
+        )
+    results = await db.execute(stmt)
     return results.scalars().all()
 
 

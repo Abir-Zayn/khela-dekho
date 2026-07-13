@@ -3,8 +3,10 @@ import uuid
 from uuid6 import uuid7
 from datetime import UTC, datetime
 from enum import unique
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, Uuid, Enum
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, Uuid, Enum, Computed, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import TSVECTOR
+
 
 from app.database import Base 
 
@@ -53,6 +55,18 @@ class Post(Base):
     video_url: Mapped[str | None] =mapped_column(String(500), nullable=True)
     reference_url: Mapped[str | None ] =mapped_column(String(500), nullable=True)
     
+    #SEARCH OPTIMIZATION
+    search_vector: Mapped[str] = mapped_column(
+        TSVECTOR,
+        Computed("to_tsvector('english', title || ' ' || content)", persisted=True),
+        nullable=False,
+    )
+
+    # 1. GIN index on the search vector
+    __table_args__ = (
+        Index("ix_post_search_vector", search_vector, postgresql_using="gin"),
+    )
+    
     # Relationships
     user: Mapped[User] = relationship(back_populates="posts")
 
@@ -60,4 +74,5 @@ class Post(Base):
     def author(self) -> str:
         # pyrefly: ignore [redundant-condition]
         return self.user.username if self.user else ""
-    
+
+### C:\office-work\khela-dekho-blog\sports_blog\study_notes
