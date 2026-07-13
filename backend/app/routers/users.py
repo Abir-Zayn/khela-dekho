@@ -1,3 +1,4 @@
+from app.security import require_role
 import uuid
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -60,4 +61,21 @@ async def get_user(user_id: uuid.UUID, db: Annotated[AsyncSession, Depends(get_d
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found"
         )
+    return user
+
+
+@router.patch("/{user_id}/role",response_model=UserResponse)
+async def set_user_role(
+    user_id: uuid.UUID,
+    new_role: models.UserRole,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    _admin: Annotated[models.User, Depends(require_role(models.UserRole.ADMIN))],
+):
+    res = await db.execute(select(models.User).where(models.User.id == user_id))
+    user = res.scalars().first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    user.role = new_role
+    await db.commit()
+    await db.refresh(user)
     return user

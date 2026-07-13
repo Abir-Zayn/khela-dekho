@@ -24,7 +24,7 @@ def generate_presigned_upload(user_id:uuid.UUID, content_type:str)-> dict:
     try :
         presigned = s3_client.generate_presigned_post(
             Bucket = settings.S3_BUCKET_NAME,
-            key = key,
+            Key = key,
             Fields = {"Content-Type": content_type},
             Conditions = [
                 {"Content-Type": content_type},

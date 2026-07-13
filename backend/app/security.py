@@ -1,23 +1,18 @@
 import uuid
-from jwt import InvalidTokenError
-from fastapi import status
-from fastapi import HTTPException
-from fastapi import Depends
-from sqlalchemy.util.typing import Annotated
-from app.config import settings
-from datetime import timezone
-from datetime import datetime
-from datetime import timedelta
-from pwdlib import PasswordHash
-from fastapi.security import OAuth2PasswordBearer
-import uuid
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from app import models
-from app.database import get_db
+from datetime import datetime, timedelta, timezone
+from typing import Annotated
 
 import jwt
+from jwt import InvalidTokenError
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from pwdlib import PasswordHash
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app import models
 from app.config import settings
+from app.database import get_db
 
 password_hash = PasswordHash.recommended()
 # tokenUrl is just where Swagger's "Authorize" button sends the login form
@@ -79,7 +74,7 @@ async def get_current_user(
         if sub is None:
             raise credentials_error
         user_id = uuid.UUID(sub)
-    except InvalidTokenError:
+    except (InvalidTokenError, ValueError, KeyError):
         raise credentials_error
 
     result = await db.execute(select(models.User).where(models.User.id == user_id))
@@ -87,3 +82,20 @@ async def get_current_user(
     if user is None:
         raise credentials_error
     return user
+
+def can_modify_post(user:models.User,post: models.Post) -> bool:
+     """Post owners and admins (authorities) may edit or delete a post."""
+     return post.user_id == user.id or user.role == models.UserRole.ADMIN
+
+def require_role(*allowed_roles: models.UserRole):
+    """Dependency factory for role-only routes (e.g. admin-only endpoints)."""
+    async def _checker(
+        current_user: Annotated[models.User, Depends(get_current_user)],
+    )->models.User:
+        if current_user.role not in allowed_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Insufficient permissions",
+            )
+        return current_user
+    return _checker

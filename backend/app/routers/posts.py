@@ -1,3 +1,4 @@
+from app.security import can_modify_post
 from app.s3 import generate_presigned_upload
 from app.schemas import UploadURLRequest
 from app.security import get_current_user
@@ -37,22 +38,15 @@ async def get_posts_by_id(post_id: uuid.UUID, db: Annotated[AsyncSession, Depend
 
 
 @router.post("", response_model=PostResponse, status_code=status.HTTP_201_CREATED)
-async def create_post(post: PostCreate, db: Annotated[AsyncSession, Depends(get_db)]):
-    # Verify that the user (author) exists
-    res_user = await db.execute(
-        select(models.User).where(models.User.id == post.user_id)
-    )
-    user = res_user.scalars().first()
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User (author) not found"
-        )
-    
+async def create_post(
+    post: PostCreate,
+    current_user: Annotated[models.User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
     new_post = models.Post(
         title=post.title,
         content=post.content,
-        user_id=post.user_id,
+        user_id=current_user.id,
         image_url=post.image_url,
         video_url=post.video_url,
         reference_url=post.reference_url,
@@ -71,7 +65,12 @@ async def create_post(post: PostCreate, db: Annotated[AsyncSession, Depends(get_
 
 
 @router.put("/{post_id}", response_model=PostResponse)
-async def update_post(post_id: uuid.UUID, post_data: PostUpdate, db: Annotated[AsyncSession, Depends(get_db)]):
+async def update_post(
+    post_id: uuid.UUID,
+    post_data: PostUpdate,
+    current_user: Annotated[models.User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
     res = await db.execute(
         select(models.Post)
         .options(selectinload(models.Post.user))
@@ -82,6 +81,13 @@ async def update_post(post_id: uuid.UUID, post_data: PostUpdate, db: Annotated[A
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Post not found"
+        )
+    
+    # Only the post owner or admins can update a post
+    if not can_modify_post(current_user, post):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to update this post",
         )
     
     if post_data.title is not None:
@@ -108,17 +114,22 @@ async def update_post(post_id: uuid.UUID, post_data: PostUpdate, db: Annotated[A
 
 
 @router.delete("/{post_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_post(post_id: uuid.UUID, db: Annotated[AsyncSession, Depends(get_db)]):
-    res = await db.execute(
-        select(models.Post).where(models.Post.id == post_id)
-    )
+async def delete_post(
+    post_id: uuid.UUID,
+    current_user: Annotated[models.User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    res = await db.execute(select(models.Post).where(models.Post.id == post_id))
     post = res.scalars().first()
     if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+
+    if not can_modify_post(current_user, post):
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Post not found"
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to delete this post",
         )
-    
+
     await db.delete(post)
     await db.commit()
     return None

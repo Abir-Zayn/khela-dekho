@@ -1,13 +1,18 @@
-from sqlalchemy import Uuid
-
+import enum
 import uuid
 from uuid6 import uuid7
 from datetime import UTC, datetime
 from enum import unique
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, Uuid
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, Uuid, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base 
+
+
+class UserRole(str, enum.Enum):
+    USER ="user"
+    ADMIN = "admin"
+
 
 class User(Base):
     __tablename__ = "users"
@@ -16,6 +21,13 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     email: Mapped[str] = mapped_column(String(100), nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    role: Mapped[UserRole] = mapped_column(
+        # pyrefly: ignore [no-matching-overload]
+        Enum(UserRole, name="user_role", values_callable=lambda e: [m.value for m in e]),
+        default=UserRole.USER,
+        server_default=UserRole.USER.value,
+        nullable=False,
+    )
 
     # Relationships
     posts: Mapped[list[Post]] = relationship(back_populates="user", cascade="all, delete-orphan")
