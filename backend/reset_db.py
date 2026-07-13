@@ -8,7 +8,9 @@ async def reset_database():
     print("Resetting database tables on RDS...")
     try:
         async with engine.begin() as conn:
-            print("Dropping tables posts, users, and categories (CASCADE)...")
+            print("Dropping tables post_tags, tags, posts, users, and categories (CASCADE)...")
+            await conn.execute(text("DROP TABLE IF EXISTS post_tags CASCADE;"))
+            await conn.execute(text("DROP TABLE IF EXISTS tags CASCADE;"))
             await conn.execute(text("DROP TABLE IF EXISTS posts CASCADE;"))
             await conn.execute(text("DROP TABLE IF EXISTS users CASCADE;"))
             await conn.execute(text("DROP TABLE IF EXISTS categories CASCADE;"))
@@ -16,7 +18,7 @@ async def reset_database():
             print("Creating all tables from current metadata...")
             await conn.run_sync(Base.metadata.create_all)
             
-        # Seed categories using AsyncSessionLocal
+        # Seed categories and tags using AsyncSessionLocal
         from app.database import AsyncSessionLocal
         from uuid6 import uuid7
         
@@ -27,7 +29,11 @@ async def reset_database():
             "Formula 1", "Sumo", "Cycling", "Shooting"
         ]
         
-        print(f"Seeding {len(categories_to_seed)} sports categories...")
+        tags_to_seed = [
+            "ViratKohli", "Under19", "WorldCup", "SportsTech", "Nutrition", "Training", "IPL", "PremierLeague"
+        ]
+        
+        print(f"Seeding {len(categories_to_seed)} sports categories and {len(tags_to_seed)} tags...")
         async with AsyncSessionLocal() as session:
             for cat_name in categories_to_seed:
                 slug = cat_name.lower().replace(" ", "-")
@@ -37,9 +43,19 @@ async def reset_database():
                     slug=slug
                 )
                 session.add(category)
+                
+            for tag_name in tags_to_seed:
+                slug = tag_name.lower().strip().replace(" ", "-")
+                tag = models.Tag(
+                    id=uuid7(),
+                    name=tag_name,
+                    slug=slug
+                )
+                session.add(tag)
+                
             await session.commit()
             
-        print("Database reset and category seeding completed successfully.")
+        print("Database reset, category and tag seeding completed successfully.")
     except Exception as e:
         print(f"Error resetting database: {e}", file=sys.stderr)
         sys.exit(1)

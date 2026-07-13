@@ -1,0 +1,192 @@
+{
+  "app/__init__.py": {
+    "mtime": 1783513401.217294,
+    "ast_hash": "88907f1353ee122e274c461831f33ad6",
+    "semantic_hash": ""
+  },
+  "app/config.py": {
+    "mtime": 1783597625.9327843,
+    "ast_hash": "52b98e7df9d564c70080f0985bf5282c",
+    "semantic_hash": ""
+  },
+  "app/database.py": {
+    "mtime": 1783559658.8970165,
+    "ast_hash": "8b68f92adb31a9a3128bf511efa47522",
+    "semantic_hash": ""
+  },
+  "app/main.py": {
+    "mtime": 1783976376.7908008,
+    "ast_hash": "c5acd7fd312e474a095b46af5c4afb53",
+    "semantic_hash": ""
+  },
+  "app/models.py": {
+    "mtime": 1783976335.156745,
+    "ast_hash": "04cb4e5879e0835a15fefb5933d736ff",
+    "semantic_hash": ""
+  },
+  "app/routers/__init__.py": {
+    "mtime": 1782990927.7451706,
+    "ast_hash": "88907f1353ee122e274c461831f33ad6",
+    "semantic_hash": ""
+  },
+  "app/routers/auth.py": {
+    "mtime": 1783613001.9525006,
+    "ast_hash": "562a960a62496bd2076a421ee5eb566b",
+    "semantic_hash": ""
+  },
+  "app/routers/categories.py": {
+    "mtime": 1783940386.3935502,
+    "ast_hash": "09fca752bd08f90743c1966b3cdc11a0",
+    "semantic_hash": ""
+  },
+  "app/routers/posts.py": {
+    "mtime": 1783976359.0659065,
+    "ast_hash": "79d82b85664a5e5cf725656a986f684a",
+    "semantic_hash": ""
+  },
+  "app/routers/users.py": {
+    "mtime": 1783615672.0928295,
+    "ast_hash": "6716f7eee266cef1b15fc4353a3ab4a3",
+    "semantic_hash": ""
+  },
+  "app/s3.py": {
+    "mtime": 1783926846.8312478,
+    "ast_hash": "eaa8b25cd24d5bd8e0e213f4b6389505",
+    "semantic_hash": ""
+  },
+  "app/schemas.py": {
+    "mtime": 1783976477.077637,
+    "ast_hash": "eaa7109562c99926f6b01d28a30e569e",
+    "semantic_hash": ""
+  },
+  "app/security.py": {
+    "mtime": 1783927496.329605,
+    "ast_hash": "daf63203842570da74f4dba1adc90d43",
+    "semantic_hash": ""
+  },
+  "reset_db.py": {
+    "mtime": 1783976385.2760441,
+    "ast_hash": "4e9b82959c8d8bfbacf6415d545759d8",
+    "semantic_hash": ""
+  },
+  "skills-lock.json": {
+    "mtime": 1782948715.7997332,
+    "ast_hash": "094917a406c1982c25d9fd2c48272a06",
+    "semantic_hash": ""
+  },
+  ".agents/skills/fastapi-async-patterns/SKILL.md": {
+    "mtime": 1782948606.770905,
+    "ast_hash": "01408080e51fb63caa1f9c75c95b917b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/fastapi-code-review/SKILL.md": {
+    "mtime": 1782948629.6716073,
+    "ast_hash": "802f0e4aaf70767d27c760ff0c0250b1",
+    "semantic_hash": ""
+  },
+  ".agents/skills/fastapi-code-review/references/async.md": {
+    "mtime": 1782948629.673125,
+    "ast_hash": "8a7368211b6a78824e115d5ffaea46ca",
+    "semantic_hash": ""
+  },
+  ".agents/skills/fastapi-code-review/references/dependencies.md": {
+    "mtime": 1782948629.673125,
+    "ast_hash": "51022f45f321131bbf389a748f23dd2a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/fastapi-code-review/references/routes.md": {
+    "mtime": 1782948629.673125,
+    "ast_hash": "7192db26147eb41059a138dbd4f0327d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/fastapi-code-review/references/validation.md": {
+    "mtime": 1782948629.6746674,
+    "ast_hash": "6422605d4f79f1665057b59e0951fdc2",
+    "semantic_hash": ""
+  },
+  ".agents/skills/fastapi-expert/SKILL.md": {
+    "mtime": 1782948563.40695,
+    "ast_hash": "4b90e10002ca4cda115ce1e4b6942d5c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/fastapi-expert/references/async-sqlalchemy.md": {
+    "mtime": 1782948563.40695,
+    "ast_hash": "0ba0d5006cb8487f3ed684bdc6a04899",
+    "semantic_hash": ""
+  },
+  ".agents/skills/fastapi-expert/references/authentication.md": {
+    "mtime": 1782948563.408465,
+    "ast_hash": "3832ad084e1532a3d5f19fb430c04d3b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/fastapi-expert/references/endpoints-routing.md": {
+    "mtime": 1782948563.408465,
+    "ast_hash": "ce22ec44a1a7921c7c6b6fe0eb95cd24",
+    "semantic_hash": ""
+  },
+  ".agents/skills/fastapi-expert/references/migration-from-django.md": {
+    "mtime": 1782948563.4099884,
+    "ast_hash": "0b7bf1d5b2dc2b30431e3a130160ea5c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/fastapi-expert/references/pydantic-v2.md": {
+    "mtime": 1782948563.4099884,
+    "ast_hash": "cf601aa6160f581ef2ac731a17062d8a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/fastapi-expert/references/testing-async.md": {
+    "mtime": 1782948563.4099884,
+    "ast_hash": "9f501c1a9b2520303f13354a9358876a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/python-fastapi-ddd-skill/SKILL.md": {
+    "mtime": 1782948710.6894436,
+    "ast_hash": "b22d29ed6fb71bf16ef6eed212172d09",
+    "semantic_hash": ""
+  },
+  ".agents/skills/python-fastapi-ddd-skill/agents/openai.yaml": {
+    "mtime": 1782948710.6894436,
+    "ast_hash": "f033b924a793610bd669d188f02922ed",
+    "semantic_hash": ""
+  },
+  ".agents/skills/python-fastapi-ddd-skill/references/ARCHITECTURE.md": {
+    "mtime": 1782948710.6909533,
+    "ast_hash": "e5e419ec3093d4d2b2cdf12f13d5107c",
+    "semantic_hash": ""
+  },
+  ".agents/skills/python-fastapi-ddd-skill/references/ENTITIES.md": {
+    "mtime": 1782948710.6909533,
+    "ast_hash": "8438d53eed7eed2e0c4357c499aaea11",
+    "semantic_hash": ""
+  },
+  ".agents/skills/python-fastapi-ddd-skill/references/REPOSITORIES.md": {
+    "mtime": 1782948710.6909533,
+    "ast_hash": "24953ce17329cbf125ee4e5f65f7a9b7",
+    "semantic_hash": ""
+  },
+  ".agents/skills/python-fastapi-ddd-skill/references/USECASES.md": {
+    "mtime": 1782948710.6909533,
+    "ast_hash": "5847d26b9cfdeb9381f421bf7548809d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/python-fastapi-ddd-skill/references/VALUE_OBJECTS.md": {
+    "mtime": 1782948710.6909533,
+    "ast_hash": "0d7869d3bfd3127448eeb250a15b423b",
+    "semantic_hash": ""
+  },
+  "project_features.md": {
+    "mtime": 1783975842.6112392,
+    "ast_hash": "4578fde0ad237550f9f22b513066285f",
+    "semantic_hash": ""
+  },
+  "worklist.md": {
+    "mtime": 1783976543.9307144,
+    "ast_hash": "937677d0056421d32d6e503a2d462c2b",
+    "semantic_hash": ""
+  },
+  "app/routers/tags.py": {
+    "mtime": 1783976368.198815,
+    "ast_hash": "7e29cb77aaf5f1eb21d7ac3acc4ee237",
+    "semantic_hash": ""
+  }
+}

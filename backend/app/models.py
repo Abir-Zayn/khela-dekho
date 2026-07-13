@@ -3,7 +3,7 @@ import uuid
 from uuid6 import uuid7
 from datetime import UTC, datetime
 from enum import unique
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, Uuid, Enum, Computed, Index
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, Uuid, Enum, Computed, Index, Table, Column
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import TSVECTOR
 
@@ -46,6 +46,29 @@ class Category(Base):
     posts: Mapped[list[Post]] = relationship(back_populates="category", cascade="all, delete-orphan")
 
 
+# Junction table for post-tag many-to-many relationship
+post_tags = Table(
+    "post_tags",
+    Base.metadata,
+    Column("post_id", Uuid, ForeignKey("posts.id", ondelete="CASCADE"), primary_key=True),
+    Column("tag_id", Uuid, ForeignKey("tags.id", ondelete="CASCADE"), primary_key=True),
+)
+
+
+class Tag(Base):
+    __tablename__ = "tags"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid7)
+    name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+    slug: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+
+    # Relationships
+    posts: Mapped[list[Post]] = relationship(
+        secondary=post_tags,
+        back_populates="tags",
+    )
+
+
 class Post(Base):
     __tablename__ = "posts"
 
@@ -84,6 +107,10 @@ class Post(Base):
     # Relationships
     user: Mapped[User] = relationship(back_populates="posts")
     category: Mapped[Category] = relationship(back_populates="posts")
+    tags: Mapped[list[Tag]] = relationship(
+        secondary=post_tags,
+        back_populates="posts",
+    )
 
     @property
     def author(self) -> str:

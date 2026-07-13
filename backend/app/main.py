@@ -11,7 +11,7 @@ from sqlalchemy.orm import selectinload
 
 from app import models
 from app.database import Base, engine, get_db
-from app.routers import posts, users, auth, categories
+from app.routers import posts, users, auth, categories, tags
 
 
 @asynccontextmanager
@@ -62,6 +62,7 @@ app.include_router(users.router)
 app.include_router(posts.router)
 app.include_router(auth.router)
 app.include_router(categories.router)
+app.include_router(tags.router)
 
 @app.get("/", include_in_schema=False, name="home")
 async def home():
