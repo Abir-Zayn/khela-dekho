@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field, EmailStr
-from app.models import UserRole
+from app.models import UserRole, ReactionType
 import uuid
 
 
@@ -66,6 +66,16 @@ class TagResponse(TagBase):
     id: uuid.UUID
 
 
+#-------- Reaction Schema ----------
+class ReactionCounts(BaseModel):
+    laugh: int = 0
+    love: int = 0
+    like: int = 0
+
+class ReactionCreate(BaseModel):
+    reaction_type: ReactionType
+
+
 #-------- POST Schema ----------
 
 # 1. Base Schema: Contains fields shared by both Request and Response
@@ -106,6 +116,8 @@ class PostResponse(PostBase):
     author: str = Field(min_length=2, max_length=50, description="The name of the author")
     category: CategoryResponse
     tags: list[TagResponse] = Field(default=[])
+    reaction_counts: ReactionCounts
+    current_user_reaction: str | None = None
  
 class UploadURLRequest(BaseModel):
     content_type:str 

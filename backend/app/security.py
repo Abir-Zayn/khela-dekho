@@ -17,6 +17,7 @@ from app.database import get_db
 password_hash = PasswordHash.recommended()
 # tokenUrl is just where Swagger's "Authorize" button sends the login form
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
+oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="api/auth/login", auto_error=False)
 
 
 def hash_password(plain_password:str)->str:
@@ -81,6 +82,30 @@ async def get_current_user(
     user = result.scalars().first()
     if user is None:
         raise credentials_error
+    return user
+
+
+async def get_current_user_optional(
+    token: Annotated[str | None, Depends(oauth2_scheme_optional)] = None,
+    db: Annotated[AsyncSession | None, Depends(get_db)] = None,
+) -> models.User | None:
+    if not token:
+        return None
+    if db is None:
+        return None
+    try:
+        payload = decode_token(token)
+        if payload.get("type") != "access":     # refuse refresh tokens here
+            return None
+        sub = payload.get("sub")
+        if sub is None:
+            return None
+        user_id = uuid.UUID(sub)
+    except Exception:
+        return None
+
+    result = await db.execute(select(models.User).where(models.User.id == user_id))
+    user = result.scalars().first()
     return user
 
 def can_modify_post(user:models.User,post: models.Post) -> bool:

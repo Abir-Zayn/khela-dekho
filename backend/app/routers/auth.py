@@ -132,3 +132,4 @@ async def reset_password(
     reset_row.used_at = datetime.now(UTC)
     await db.commit()
     return {"message": "Password has been reset successfully."}   
+

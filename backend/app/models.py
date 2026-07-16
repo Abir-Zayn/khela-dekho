@@ -15,6 +15,13 @@ class UserRole(str, enum.Enum):
     ADMIN = "admin"
 
 
+class ReactionType(str, enum.Enum):
+    LAUGH = "laugh"
+    LOVE = "love"
+    LIKE = "like"
+
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -43,6 +50,7 @@ class User(Base):
 
     # Relationships
     posts: Mapped[list[Post]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    reactions: Mapped[list["Reaction"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
 class Category(Base):
@@ -96,6 +104,8 @@ class Post(Base):
         default=lambda: datetime.now(UTC),
     )
     likes: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    love_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    laugh_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
     #Embeded-urls
     image_url: Mapped[str | None] =mapped_column(String(500), nullable=True)
@@ -121,11 +131,31 @@ class Post(Base):
         secondary=post_tags,
         back_populates="posts",
     )
+    reactions_list: Mapped[list["Reaction"]] = relationship(
+        back_populates="post", cascade="all, delete-orphan"
+    )
+
+    @property
+    def current_user_reaction(self) -> str | None:
+        return getattr(self, "_current_user_reaction", None)
+
+    @current_user_reaction.setter
+    def current_user_reaction(self, value: str | None) -> None:
+        self._current_user_reaction = value
 
     @property
     def author(self) -> str:
         # pyrefly: ignore [redundant-condition]
         return self.user.username if self.user else ""
+
+    @property
+    def reaction_counts(self) -> dict[str, int]:
+        return {
+            "laugh": self.laugh_count,
+            "love": self.love_count,
+            "like": self.likes,
+        }
+
 
 class PasswordResetToken(Base):
     __tablename__ = "password_reset_tokens"
@@ -138,3 +168,29 @@ class PasswordResetToken(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
 
     user: Mapped["User"] = relationship()
+
+
+class Reaction(Base):
+    __tablename__ = "reactions"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid7)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    post_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("posts.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    reaction_type: Mapped[ReactionType] = mapped_column(
+        # pyrefly: ignore [no-matching-overload]
+        Enum(ReactionType, name="reaction_type", values_callable=lambda e: [m.value for m in e]),
+        nullable=False,
+    )
+
+    # Unique constraint on (user_id, post_id)
+    __table_args__ = (
+        Index("ix_reactions_user_post", "user_id", "post_id", unique=True),
+    )
+
+    # Relationships
+    user: Mapped["User"] = relationship(back_populates="reactions")
+    post: Mapped["Post"] = relationship(back_populates="reactions_list")

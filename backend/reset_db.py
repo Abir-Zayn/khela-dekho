@@ -8,7 +8,8 @@ async def reset_database():
     print("Resetting database tables on RDS...")
     try:
         async with engine.begin() as conn:
-            print("Dropping tables post_tags, tags, posts, users, and categories (CASCADE)...")
+            print("Dropping tables reactions, post_tags, tags, posts, users, and categories (CASCADE)...")
+            await conn.execute(text("DROP TABLE IF EXISTS reactions CASCADE;"))
             await conn.execute(text("DROP TABLE IF EXISTS post_tags CASCADE;"))
             await conn.execute(text("DROP TABLE IF EXISTS tags CASCADE;"))
             await conn.execute(text("DROP TABLE IF EXISTS posts CASCADE;"))

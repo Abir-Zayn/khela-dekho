@@ -65,3 +65,6 @@ def delete_s3_object(key: str) -> None:
         print(f"Successfully deleted S3 object: {key}")
     except ClientError as e:
         print(f"Failed to delete S3 object {key} from bucket {settings.S3_BUCKET_NAME}: {e}")
+
+
+#
