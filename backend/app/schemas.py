@@ -15,9 +15,29 @@ class UserCreate(UserBase):
 
 class UserResponse(UserBase):
     model_config = ConfigDict(from_attributes=True)
+    id: uuid.UUID
     role: UserRole
-   
+    full_name: str | None = None
+    profile_photo_url: str | None = None
+    location: str | None = None
+    bio: str | None = None
+    website_url: str | None = None
+    twitter_handle: str | None = None
+    instagram_handle: str | None = None
+    reading_interests: list[str] | None = None
+    hobbies: list[str] | None = None
 
+class UserProfileUpdate(BaseModel):
+    full_name: str | None = Field(None, min_length=2, max_length=100)
+    profile_photo_url: str | None = Field(None, max_length=500)
+    location: str | None = Field(None, max_length=100)
+    bio: str | None = Field(None, min_length=1, max_length=1000)
+    website_url: str | None = Field(None, max_length=500)
+    twitter_handle: str | None = Field(None, max_length=100)
+    instagram_handle: str | None = Field(None, max_length=100)
+    reading_interests: list[str] | None = Field(None, max_length=100)
+    hobbies: list[str] | None = Field(None, max_length=100)
+   
 
 
 #-------- Category Schema ----------

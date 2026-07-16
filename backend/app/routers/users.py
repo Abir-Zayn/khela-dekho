@@ -1,4 +1,4 @@
-from app.security import require_role
+from app.security import require_role, get_current_user
 import uuid
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import models
 from app.database import get_db
-from app.schemas import UserCreate, UserResponse
+from app.schemas import UserCreate, UserResponse, UserProfileUpdate
 from app.security import hash_password
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
@@ -48,6 +48,28 @@ async def create_user(user: UserCreate, db: Annotated[AsyncSession, Depends(get_
     await db.refresh(new_user)
  
     return new_user 
+
+
+@router.get("/me", response_model=UserResponse)
+async def get_my_profile(
+    current_user: Annotated[models.User, Depends(get_current_user)],
+):
+    return current_user
+
+
+@router.patch("/me", response_model=UserResponse)
+async def update_my_profile(
+    profile_data: UserProfileUpdate,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[models.User, Depends(get_current_user)],
+):
+    update_data = profile_data.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(current_user, key, value)
+    
+    await db.commit()
+    await db.refresh(current_user)
+    return current_user
 
 
 @router.get("/{user_id}", response_model=UserResponse)

@@ -5,8 +5,7 @@ from datetime import UTC, datetime
 from enum import unique
 from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, Uuid, Enum, Computed, Index, Table, Column
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.dialects.postgresql import TSVECTOR
-
+from sqlalchemy.dialects.postgresql import TSVECTOR,ARRAY
 
 from app.database import Base 
 
@@ -30,6 +29,17 @@ class User(Base):
         server_default=UserRole.USER.value,
         nullable=False,
     )
+
+    ##---------Profile Table Fields -----------
+    full_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    profile_photo_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    location: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    bio: Mapped[str | None] = mapped_column(Text, nullable=True)
+    website_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    twitter_handle: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    instagram_handle: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    reading_interests: Mapped[list[str] | None] = mapped_column(ARRAY(String(50)), nullable=True)
+    hobbies: Mapped[list[str] | None] = mapped_column(ARRAY(String(50)), nullable=True)
 
     # Relationships
     posts: Mapped[list[Post]] = relationship(back_populates="user", cascade="all, delete-orphan")
