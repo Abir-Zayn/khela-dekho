@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
-
+import secrets, hashlib
 import jwt
 from jwt import InvalidTokenError
 from fastapi import Depends, HTTPException, status
@@ -99,3 +99,11 @@ def require_role(*allowed_roles: models.UserRole):
             )
         return current_user
     return _checker
+
+def generate_reset_token() -> tuple[str, str]:
+    plaintext = secrets.token_urlsafe(32)
+    token_hash = hashlib.sha256(plaintext.encode()).hexdigest()
+    return plaintext, token_hash
+
+def hash_reset_token(plaintext: str) -> str:
+    return hashlib.sha256(plaintext.encode()).hexdigest()

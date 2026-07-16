@@ -1,5 +1,5 @@
 .env
 .reset_db.py
 .worklist.md
-.graphify-out/
+
 graphify-out/
