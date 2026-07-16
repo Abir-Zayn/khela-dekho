@@ -1,7 +1,7 @@
 from app.security import require_role, get_current_user
 import uuid
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -9,6 +9,7 @@ from app import models
 from app.database import get_db
 from app.schemas import UserCreate, UserResponse, UserProfileUpdate
 from app.security import hash_password
+from app.s3 import delete_s3_object, extract_s3_key
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
 
@@ -60,10 +61,21 @@ async def get_my_profile(
 @router.patch("/me", response_model=UserResponse)
 async def update_my_profile(
     profile_data: UserProfileUpdate,
+    background_tasks: BackgroundTasks,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[models.User, Depends(get_current_user)],
 ):
     update_data = profile_data.model_dump(exclude_unset=True)
+    
+    # Handle old profile photo deletion if a new photo is set
+    if "profile_photo_url" in update_data and current_user.profile_photo_url:
+        old_photo_url = current_user.profile_photo_url
+        new_photo_url = update_data["profile_photo_url"]
+        if old_photo_url != new_photo_url:
+            old_key = extract_s3_key(old_photo_url)
+            if old_key:
+                background_tasks.add_task(delete_s3_object, old_key)
+
     for key, value in update_data.items():
         setattr(current_user, key, value)
     
