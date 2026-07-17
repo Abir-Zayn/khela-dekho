@@ -16,8 +16,8 @@ async def create_test_user(client: httpx.AsyncClient, username: str):
     assert response.status_code == 201, f"Failed to register user: {response.text}"
     
     # Login to get token
-    login_response = await client.post("/api/auth/login", data={
-        "username": username,
+    login_response = await client.post("/api/auth/login", json={
+        "email": f"{username}@example.com",
         "password": "securepassword123"
     })
     assert login_response.status_code == 200, f"Failed to login user: {login_response.text}"

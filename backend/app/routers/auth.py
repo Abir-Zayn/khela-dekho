@@ -6,7 +6,6 @@ from sqlalchemy import update
 import uuid
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -32,23 +31,38 @@ class ResetPasswordRequest(BaseModel):
     token: str
     new_password: str = Field(min_length=8)
 
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=1)
+
 class TokenPair(BaseModel):
     access_token: str
     refresh_token: str
     token_type:str ="bearer"
 
-@router.post("/login",response_model=TokenPair)
+@router.post(
+    "/login",
+    response_model=TokenPair,
+    summary="Login with email and password",
+    description=(
+        "Authenticate a registered user with their **email** and **password**. "
+        "On success, returns a JWT **access token** and **refresh token** pair. "
+        "Send the access token as a `Bearer` token in the `Authorization` header "
+        "to reach protected endpoints; use the refresh token at `/api/auth/refresh` "
+        "to obtain a new pair without re-entering credentials."
+    ),
+)
 async def login(
-    form: Annotated[OAuth2PasswordRequestForm,Depends()],
-    db:Annotated[AsyncSession,Depends(get_db)]):
-    
-    result = await db.execute(select(models.User).where(models.User.username == form.username))
+    body: LoginRequest,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    result = await db.execute(select(models.User).where(models.User.email == body.email))
     user = result.scalars().first()
-    
-    if not user or not verify_password(form.password, user.hashed_password):
+
+    if not user or not verify_password(body.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
+            detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
     return TokenPair(
