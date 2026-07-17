@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import models
 from app.database import get_db
+from app.schemas import UserCreate, UserResponse
 from app.security import (
     verify_password,
     create_access_token,
@@ -39,6 +40,52 @@ class TokenPair(BaseModel):
     access_token: str
     refresh_token: str
     token_type:str ="bearer"
+
+@router.post(
+    "/register",
+    response_model=UserResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Register a new user account",
+    description=(
+        "Create a new user account with a **username**, **email**, and **password**. "
+        "Both username and email must be unique. The password is hashed before storage. "
+        "After registering, call `/api/auth/login` with the same email and password to "
+        "obtain access and refresh tokens."
+    ),
+)
+async def register(
+    body: UserCreate,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    res_user = await db.execute(
+        select(models.User).where(models.User.username == body.username)
+    )
+    if res_user.scalars().first():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username already exists",
+        )
+
+    res_email = await db.execute(
+        select(models.User).where(models.User.email == body.email)
+    )
+    if res_email.scalars().first():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email Already Exists.",
+        )
+
+    new_user = models.User(
+        username=body.username,
+        email=body.email,
+        hashed_password=hash_password(body.password),
+    )
+
+    db.add(new_user)
+    await db.commit()
+    await db.refresh(new_user)
+
+    return new_user
 
 @router.post(
     "/login",

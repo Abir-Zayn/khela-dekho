@@ -7,48 +7,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import models
 from app.database import get_db
-from app.schemas import UserCreate, UserResponse, UserProfileUpdate
-from app.security import hash_password
+from app.schemas import UserResponse, UserProfileUpdate
 from app.s3 import delete_s3_object, extract_s3_key
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
-
-
-@router.post(
-    "",
-    response_model=UserResponse,
-    status_code=status.HTTP_201_CREATED
-)
-async def create_user(user: UserCreate, db: Annotated[AsyncSession, Depends(get_db)]):
-    res_user = await db.execute(
-        select(models.User).where(models.User.username == user.username)
-    )
-    if res_user.scalars().first():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Username already exists",
-        )
-    
-    res_email = await db.execute(
-        select(models.User).where(models.User.email == user.email)
-    )
-    if res_email.scalars().first():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email Already Exists."
-        )
-    
-    new_user = models.User(
-        username=user.username,
-        email=user.email,
-        hashed_password=hash_password(user.password)
-    )
-
-    db.add(new_user)
-    await db.commit()
-    await db.refresh(new_user)
- 
-    return new_user 
 
 
 @router.get("/me", response_model=UserResponse)

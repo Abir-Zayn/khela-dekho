@@ -8,7 +8,7 @@ from sqlalchemy import select, delete
 from app.database import AsyncSessionLocal
 
 async def create_test_user(client: httpx.AsyncClient, username: str):
-    response = await client.post("/api/users", json={
+    response = await client.post("/api/auth/register", json={
         "username": username,
         "email": f"{username}@example.com",
         "password": "securepassword123"
