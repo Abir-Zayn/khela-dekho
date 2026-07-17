@@ -1,6 +1,6 @@
 'use server';
 
-import { apiFetch } from './http';
+import { apiFetch } from '../../../configs/apiClient';
 import type { Post } from '../types';
 
 export async function getSinglePost(postId: string): Promise<Post> {

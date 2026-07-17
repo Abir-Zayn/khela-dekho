@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { apiFetch } from './http';
+import { apiFetch } from '../../../configs/apiClient';
 import type { Post } from '../types';
 
 export interface CreatePostInput {

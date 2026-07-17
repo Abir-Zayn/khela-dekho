@@ -1,14 +1,47 @@
 import { cookies } from 'next/headers';
-import { API_BASE_URL } from '../../../configs/queryClient';
+import { API_BASE_URL } from './queryClient';
 
-// Set by the (not yet built) login flow. Centralized here so every server
-// action reads the token from the same place.
+// Written by the login/register actions, read by every server action across
+// every feature. Centralized here so there's one place that owns cookie names.
 export const AUTH_COOKIE_NAME = 'access_token';
+export const REFRESH_COOKIE_NAME = 'refresh_token';
 
 async function authHeader(): Promise<Record<string, string>> {
   const store = await cookies();
   const token = store.get(AUTH_COOKIE_NAME)?.value;
   return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+interface TokenPair {
+  access_token: string;
+  refresh_token: string;
+}
+
+// Matches backend defaults (app/config.py): ACCESS_TOKEN_EXPIRE_MINUTES=30, REFRESH_TOKEN_EXPIRE_DAYS=7.
+export async function setAuthCookies(tokens: TokenPair): Promise<void> {
+  const store = await cookies();
+  const secure = process.env.NODE_ENV === 'production';
+
+  store.set(AUTH_COOKIE_NAME, tokens.access_token, {
+    httpOnly: true,
+    secure,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 60 * 30,
+  });
+  store.set(REFRESH_COOKIE_NAME, tokens.refresh_token, {
+    httpOnly: true,
+    secure,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 7,
+  });
+}
+
+export async function clearAuthCookies(): Promise<void> {
+  const store = await cookies();
+  store.delete(AUTH_COOKIE_NAME);
+  store.delete(REFRESH_COOKIE_NAME);
 }
 
 async function parseErrorMessage(response: Response): Promise<string> {

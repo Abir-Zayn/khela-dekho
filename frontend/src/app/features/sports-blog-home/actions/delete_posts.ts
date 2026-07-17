@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { apiFetch } from './http';
+import { apiFetch } from '../../../configs/apiClient';
 
 export async function deletePost(postId: string): Promise<void> {
   await apiFetch<void>(`/api/posts/${postId}`, { method: 'DELETE' });
