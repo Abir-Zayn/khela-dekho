@@ -5,7 +5,7 @@ export const useSportsBlogStore = create<SportsBlogHomeState>((set) => ({
   searchQuery: '',
   selectedAuthor: '',
   layoutMode: 'grid',
-  selectedPostId: null,
+  selectedPostId: null as string | null,
   setSearchQuery: (query) => set({ searchQuery: query }),
   setSelectedAuthor: (author) => set({ selectedAuthor: author }),
   setLayoutMode: (mode) => set({ layoutMode: mode }),

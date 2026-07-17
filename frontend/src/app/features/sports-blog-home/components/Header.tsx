@@ -66,7 +66,7 @@ export function Header({ authors }: HeaderProps) {
 
         {/* Filter Controls Area */}
         <div className="mt-8 bg-zinc-900/60 backdrop-blur border border-zinc-800/80 rounded-2xl p-4 md:p-5 flex flex-col md:flex-row items-center gap-4 justify-between">
-          
+
           {/* Search Box */}
           <div className="relative w-full md:max-w-md">
             <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500">
@@ -117,22 +117,20 @@ export function Header({ authors }: HeaderProps) {
             <div className="flex items-center bg-zinc-950 border border-zinc-800 p-1 rounded-xl">
               <button
                 onClick={() => setLayoutMode('grid')}
-                className={`p-2 rounded-lg transition-all cursor-pointer ${
-                  layoutMode === 'grid'
+                className={`p-2 rounded-lg transition-all cursor-pointer ${layoutMode === 'grid'
                     ? 'bg-red-600 text-white'
                     : 'text-zinc-400 hover:text-white'
-                }`}
+                  }`}
                 title="Grid view"
               >
                 <LayoutGrid size={16} />
               </button>
               <button
                 onClick={() => setLayoutMode('list')}
-                className={`p-2 rounded-lg transition-all cursor-pointer ${
-                  layoutMode === 'list'
+                className={`p-2 rounded-lg transition-all cursor-pointer ${layoutMode === 'list'
                     ? 'bg-red-600 text-white'
                     : 'text-zinc-400 hover:text-white'
-                }`}
+                  }`}
                 title="List view"
               >
                 <List size={16} />

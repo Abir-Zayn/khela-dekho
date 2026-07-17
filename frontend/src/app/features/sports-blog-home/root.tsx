@@ -8,43 +8,29 @@ import { PostCard } from './components/PostCard';
 import { DetailModal } from './components/DetailModal';
 import { SkeletonGrid } from './components/SkeletonGrid';
 import { useSportsBlogStore } from './utils/store';
+import { getReadTime, formatDate } from './utils/postDisplay';
+import { listAllPosts } from './actions/list_all_post';
 import { Post } from './types';
-import { API_BASE_URL } from '../../configs/queryClient';
-
-// Base fetcher function
-const fetchPosts = async (): Promise<Post[]> => {
-  const response = await fetch(`${API_BASE_URL}/api/posts`);
-  if (!response.ok) {
-    throw new Error('Failed to fetch posts from the sports database');
-  }
-  return response.json();
-};
-
-// Helpers to generate aesthetic sports elements based on ID
-const getSportTag = (id: number) => {
-  const tags = ['Tactical', 'Analysis', 'Opinion', 'Interview', 'Behind the Scenes', 'Highlights'];
-  return tags[(id - 1) % tags.length];
-};
 
 export default function SportsBlogHome() {
-  // Fetch posts from API using TanStack Query
-  const { 
-    data: posts = [], 
-    isLoading, 
-    isError, 
+  // Fetch posts via the list_all_post server action
+  const {
+    data: posts = [],
+    isLoading,
+    isError,
     error,
-    refetch 
+    refetch
   } = useQuery<Post[]>({
     queryKey: ['posts'],
-    queryFn: fetchPosts,
+    queryFn: () => listAllPosts(),
   });
 
   // Zustand State
-  const { 
-    searchQuery, 
-    selectedAuthor, 
-    layoutMode, 
-    selectedPostId, 
+  const {
+    searchQuery,
+    selectedAuthor,
+    layoutMode,
+    selectedPostId,
     setSelectedPostId,
     resetFilters
   } = useSportsBlogStore();
@@ -58,10 +44,10 @@ export default function SportsBlogHome() {
   // Filter posts client-side based on search query and selected author
   const filteredPosts = useMemo(() => {
     return posts.filter(post => {
-      const matchesSearch = 
+      const matchesSearch =
         post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         post.content.toLowerCase().includes(searchQuery.toLowerCase());
-      
+
       const matchesAuthor = selectedAuthor === '' || post.author === selectedAuthor;
 
       return matchesSearch && matchesAuthor;
@@ -115,13 +101,13 @@ export default function SportsBlogHome() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans flex flex-col selection:bg-red-600 selection:text-white">
-      
+
       {/* Navigation Header */}
       <Header authors={uniqueAuthors} />
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
-        
+
         {/* Loading State */}
         {isLoading ? (
           <SkeletonGrid layoutMode={layoutMode} />
@@ -145,13 +131,13 @@ export default function SportsBlogHome() {
           <div className="space-y-10">
             {/* Featured Hero Post Banner (Only displayed in grid layout when filters are inactive) */}
             {heroPost && layoutMode === 'grid' && (
-              <div 
+              <div
                 onClick={() => setSelectedPostId(heroPost.id)}
                 className="group relative bg-zinc-900 border border-zinc-850 hover:border-red-500/50 rounded-3xl overflow-hidden shadow-2xl cursor-pointer transition-all duration-300 hover:shadow-red-950/5 flex flex-col lg:flex-row items-stretch"
               >
                 {/* Visual Accent for Hero */}
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-600 via-amber-500 to-red-600" />
-                
+
                 {/* Hero Gradient Thumbnail Banner */}
                 <div className="lg:w-7/12 bg-gradient-to-br from-red-600/30 via-zinc-900 to-zinc-950 p-8 sm:p-12 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-zinc-800 min-h-[300px]">
                   <div className="flex items-center gap-3">
@@ -160,10 +146,10 @@ export default function SportsBlogHome() {
                       Featured Analysis
                     </span>
                     <span className="bg-zinc-800/80 text-zinc-300 border border-zinc-700 font-bold text-xs uppercase px-3 py-1 rounded-md">
-                      {getSportTag(heroPost.id)}
+                      {heroPost.category.name}
                     </span>
                   </div>
-                  
+
                   <div className="mt-12">
                     <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight group-hover:text-red-500 transition-colors">
                       {heroPost.title}
@@ -184,12 +170,12 @@ export default function SportsBlogHome() {
                 <div className="lg:w-5/12 p-8 sm:p-12 flex flex-col justify-between">
                   <div className="space-y-4">
                     <div className="flex items-center gap-4 text-xs text-zinc-500">
-                      <span>{heroPost.date_posted}</span>
+                      <span>{formatDate(heroPost.date_posted)}</span>
                       <span>•</span>
-                      <span>{Math.max(1, Math.ceil(heroPost.content.split(/\s+/).length / 200))} min read</span>
+                      <span>{getReadTime(heroPost.content)} min read</span>
                     </div>
                     <p className="text-base text-zinc-400 leading-relaxed font-light">
-                      {heroPost.content.length > 250 
+                      {heroPost.content.length > 250
                         ? `${heroPost.content.substring(0, 250)}...`
                         : heroPost.content
                       }
@@ -216,10 +202,10 @@ export default function SportsBlogHome() {
                   More Sports Columns
                 </h4>
               )}
-              
+
               <div className={
-                layoutMode === 'list' 
-                  ? 'space-y-6' 
+                layoutMode === 'list'
+                  ? 'space-y-6'
                   : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'
               }>
                 {remainingPosts.map((post) => (
@@ -249,9 +235,9 @@ export default function SportsBlogHome() {
       </footer>
 
       {/* Detail Viewer Modal */}
-      <DetailModal 
-        post={selectedPost} 
-        onClose={() => setSelectedPostId(null)} 
+      <DetailModal
+        post={selectedPost}
+        onClose={() => setSelectedPostId(null)}
       />
 
     </div>

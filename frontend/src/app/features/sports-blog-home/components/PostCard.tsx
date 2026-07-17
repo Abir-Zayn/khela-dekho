@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Calendar, Clock, ArrowRight } from 'lucide-react';
+import { Calendar, Clock, ArrowRight, Heart } from 'lucide-react';
 import { Post, LayoutMode } from '../types';
+import { getTagColor, getPostGradient, getReadTime, formatDate } from '../utils/postDisplay';
 
 interface PostCardProps {
   post: Post;
@@ -10,48 +11,15 @@ interface PostCardProps {
   onClick: () => void;
 }
 
-// Helpers to generate aesthetic sports elements based on ID
-const getSportTag = (id: number) => {
-  const tags = ['Tactical', 'Analysis', 'Opinion', 'Interview', 'Behind the Scenes', 'Highlights'];
-  return tags[(id - 1) % tags.length];
-};
-
-const getTagColor = (tag: string) => {
-  const colors: Record<string, string> = {
-    Tactical: 'bg-red-500/10 text-red-500 border-red-500/20',
-    Analysis: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
-    Opinion: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
-    Interview: 'bg-green-500/10 text-green-500 border-green-500/20',
-    'Behind the Scenes': 'bg-purple-500/10 text-purple-500 border-purple-500/20',
-    Highlights: 'bg-pink-500/10 text-pink-500 border-pink-500/20',
-  };
-  return colors[tag] || 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20';
-};
-
-const getPostGradient = (id: number) => {
-  const gradients = [
-    'from-red-600/20 via-zinc-900 to-zinc-950',
-    'from-blue-600/20 via-zinc-900 to-zinc-950',
-    'from-amber-600/20 via-zinc-900 to-zinc-950',
-    'from-green-600/20 via-zinc-900 to-zinc-950',
-    'from-purple-600/20 via-zinc-900 to-zinc-950',
-    'from-pink-600/20 via-zinc-900 to-zinc-950',
-  ];
-  return gradients[(id - 1) % gradients.length];
-};
-
 export function PostCard({ post, layoutMode, onClick }: PostCardProps) {
-  const tag = getSportTag(post.id);
+  const tag = post.category.name;
   const tagColor = getTagColor(tag);
   const gradient = getPostGradient(post.id);
-  
-  // Calculate read time roughly
-  const wordCount = post.content.split(/\s+/).length;
-  const readTime = Math.max(1, Math.ceil(wordCount / 200));
+  const readTime = getReadTime(post.content);
 
   if (layoutMode === 'list') {
     return (
-      <div 
+      <div
         onClick={onClick}
         className="group relative flex flex-col md:flex-row items-stretch bg-zinc-900 border border-zinc-800/80 hover:border-red-500/50 rounded-2xl overflow-hidden transition-all duration-300 shadow-xl cursor-pointer"
       >
@@ -75,14 +43,14 @@ export function PostCard({ post, layoutMode, onClick }: PostCardProps) {
             <div className="flex items-center gap-4 text-xs text-zinc-500 mb-3">
               <span className="flex items-center gap-1">
                 <Calendar size={13} />
-                {post.date_posted}
+                {formatDate(post.date_posted)}
               </span>
               <span className="flex items-center gap-1">
                 <Clock size={13} />
                 {readTime} min read
               </span>
             </div>
-            
+
             <h3 className="text-xl font-bold text-white group-hover:text-red-500 transition-colors line-clamp-1 mb-2">
               {post.title}
             </h3>
@@ -92,8 +60,9 @@ export function PostCard({ post, layoutMode, onClick }: PostCardProps) {
           </div>
 
           <div className="mt-6 flex items-center justify-between">
-            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">
-              ID: #{post.id.toString().padStart(3, '0')}
+            <span className="flex items-center gap-1.5 text-xs font-semibold text-zinc-500">
+              <Heart size={13} className="text-red-500" />
+              {post.reaction_counts.like}
             </span>
             <span className="flex items-center gap-1 text-xs font-bold text-red-500 group-hover:translate-x-1 transition-transform">
               READ ARTICLE <ArrowRight size={14} />
@@ -106,7 +75,7 @@ export function PostCard({ post, layoutMode, onClick }: PostCardProps) {
 
   // Grid Layout (default)
   return (
-    <div 
+    <div
       onClick={onClick}
       className="group flex flex-col bg-zinc-900 border border-zinc-800/85 hover:border-red-500/50 rounded-2xl overflow-hidden transition-all duration-300 shadow-lg hover:shadow-2xl hover:shadow-red-950/10 hover:-translate-y-1 cursor-pointer h-full"
     >
@@ -116,8 +85,9 @@ export function PostCard({ post, layoutMode, onClick }: PostCardProps) {
           <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${tagColor}`}>
             {tag}
           </span>
-          <span className="text-xs font-bold text-white/50 group-hover:text-white transition-colors bg-black/35 backdrop-blur px-2 py-0.5 rounded border border-white/5">
-            #{post.id.toString().padStart(3, '0')}
+          <span className="flex items-center gap-1 text-xs font-bold text-white/50 group-hover:text-white transition-colors bg-black/35 backdrop-blur px-2 py-0.5 rounded border border-white/5">
+            <Heart size={11} className="text-red-500" />
+            {post.reaction_counts.like}
           </span>
         </div>
         <div className="flex items-center gap-2 text-zinc-300 group-hover:text-white transition-colors bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/5 w-fit max-w-[85%]">
@@ -135,7 +105,7 @@ export function PostCard({ post, layoutMode, onClick }: PostCardProps) {
           <div className="flex items-center gap-3 text-[11px] text-zinc-500 mb-3">
             <span className="flex items-center gap-1">
               <Calendar size={12} />
-              {post.date_posted}
+              {formatDate(post.date_posted)}
             </span>
             <span className="flex items-center gap-1">
               <Clock size={12} />
