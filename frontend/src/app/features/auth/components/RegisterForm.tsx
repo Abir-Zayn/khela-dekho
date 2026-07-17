@@ -13,16 +13,23 @@ export function RegisterForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const { mutate, isPending, isError, error } = useMutation({
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const { mutate, isPending } = useMutation({
     mutationFn: registerUser,
-    onSuccess: () => {
-      router.push('/');
-      router.refresh();
+    onSuccess: (result) => {
+      if (result.ok) {
+        router.push('/');
+        router.refresh();
+      } else {
+        setFormError(result.error);
+      }
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
     mutate({ username, email, password });
   };
 
@@ -90,10 +97,10 @@ export function RegisterForm() {
             />
           </div>
 
-          {isError && (
+          {formError && (
             <div className="flex items-center gap-2 text-sm text-red-400 bg-red-950/30 border border-red-900/50 rounded-xl px-4 py-3">
               <AlertTriangle size={16} className="shrink-0" />
-              <span>{error instanceof Error ? error.message : 'Registration failed'}</span>
+              <span>{formError}</span>
             </div>
           )}
 

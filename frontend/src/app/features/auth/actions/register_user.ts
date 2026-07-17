@@ -10,15 +10,25 @@ export interface RegisterInput {
   password: string;
 }
 
-export async function registerUser(input: RegisterInput): Promise<AuthUser> {
-  const user = await apiFetch<AuthUser>('/api/auth/register', {
-    method: 'POST',
-    body: JSON.stringify(input),
-  });
+export type RegisterResult = { ok: true; user: AuthUser } | { ok: false; error: string };
+
+export async function registerUser(input: RegisterInput): Promise<RegisterResult> {
+  let user: AuthUser;
+  try {
+    user = await apiFetch<AuthUser>('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    });
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : 'Registration failed' };
+  }
 
   // Registration alone doesn't return tokens, so log the user in right after
   // creating the account — they land authenticated instead of at a dead end.
-  await loginUser({ email: input.email, password: input.password });
+  const loginResult = await loginUser({ email: input.email, password: input.password });
+  if (!loginResult.ok) {
+    return { ok: false, error: loginResult.error };
+  }
 
-  return user;
+  return { ok: true, user };
 }
