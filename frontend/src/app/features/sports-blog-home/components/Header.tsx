@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Search, RotateCcw, LayoutGrid, List, Trophy, Users, Flame } from 'lucide-react';
+import { Search, RotateCcw, LayoutGrid, List, Trophy, User, Flame } from 'lucide-react';
+import Link from 'next/link';
 import { useSportsBlogStore } from '../utils/store';
 
 interface HeaderProps {
@@ -49,12 +50,15 @@ export function Header({ authors }: HeaderProps) {
 
           {/* Quick Stats Summary */}
           <div className="hidden lg:flex items-center gap-6 border-l border-zinc-800 pl-6 text-sm text-zinc-400">
-            <div className="flex items-center gap-2">
-              <Users size={16} className="text-red-500" />
+            <Link
+              href="/login"
+              className="flex items-center gap-2 hover:text-white transition-colors cursor-pointer group text-zinc-400"
+            >
+              <User size={16} className="text-red-500 group-hover:scale-110 transition-transform duration-200" />
               <span>
-                Contributors: <strong className="text-white">{authors.length}</strong>
+                My Account Info
               </span>
-            </div>
+            </Link>
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 bg-green-500 rounded-full animate-ping" />
               <span>
