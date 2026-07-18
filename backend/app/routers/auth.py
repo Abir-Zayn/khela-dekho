@@ -18,6 +18,7 @@ from app.security import (
     create_access_token,
     create_refresh_token,
     decode_token,
+    get_current_user,
 )
 from jwt.exceptions import InvalidTokenError
 
@@ -192,5 +193,18 @@ async def reset_password(
     user.hashed_password = hash_password(body.new_password)
     reset_row.used_at = datetime.now(UTC)
     await db.commit()
-    return {"message": "Password has been reset successfully."}   
+    return {"message": "Password has been reset successfully."}
+
+
+@router.post(
+    "/logout",
+    status_code=status.HTTP_200_OK,
+    summary="Logout user",
+    description="Logout the user by clearing or invalidating their session/cookies. Since JWT is stateless, the client should discard the tokens."
+)
+async def logout(
+    current_user: Annotated[models.User, Depends(get_current_user)]
+):
+    return {"message": "Logged out successfully"}
+   
 
