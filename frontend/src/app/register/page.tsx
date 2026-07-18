@@ -1,6 +1,5 @@
-import React from 'react';
-import RegisterPage from '../features/auth/register/page';
+import { redirect } from 'next/navigation';
 
 export default function Register() {
-  return <RegisterPage />;
+  redirect('/login?mode=register');
 }
