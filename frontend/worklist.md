@@ -128,4 +128,12 @@ remove directly in Postgres if it's noise.
   actions exist (`react_on_post.ts`) but nothing calls them yet.
 - No forgot/reset-password UI (backend supports it — `/api/auth/forget-password`,
   `/api/auth/reset-password`).
-- No categories/tags filter UI, no create/edit-post form.
+
+I would like to add another feature of command action . What is command action? 
+Lets say an user wants to attach image, gif or video link . So therefore when user types 
+/ it will trigger and open up the shadcn modal where 3 choices will exist 
+1. Attach an image (add url)
+2. Attach a video  (add url)
+3. Attach a reference  (Post source reference)
+
+If user attach an image , then show the image. If user attach a video then let the other readers play the video

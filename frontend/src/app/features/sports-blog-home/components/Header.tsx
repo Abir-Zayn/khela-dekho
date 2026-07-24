@@ -1,15 +1,22 @@
 'use client';
 
 import React from 'react';
-import { Search, RotateCcw, LayoutGrid, List, Trophy, User, Flame } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { Search, RotateCcw, LayoutGrid, List, Trophy, User, Flame, SquarePen } from 'lucide-react';
 import Link from 'next/link';
 import { useSportsBlogStore } from '../utils/store';
+import { getCurrentUser } from '../../auth';
 
 interface HeaderProps {
   authors: string[];
 }
 
 export function Header({ authors }: HeaderProps) {
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => getCurrentUser(),
+  });
+
   const {
     searchQuery,
     setSearchQuery,
@@ -48,24 +55,49 @@ export function Header({ authors }: HeaderProps) {
             </div>
           </div>
 
-          {/* Quick Stats Summary */}
-          <div className="hidden lg:flex items-center gap-6 border-l border-zinc-800 pl-6 text-sm text-zinc-400">
+          {/* Account Info */}
+          <div className="hidden lg:flex items-center border-l border-zinc-800 pl-6 text-sm text-zinc-400 gap-4">
             <Link
-              href="/login"
-              className="flex items-center gap-2 hover:text-white transition-colors cursor-pointer group text-zinc-400"
+              href="/create-post"
+              className="flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-800 hover:border-zinc-700 px-4 py-2 rounded-xl text-sm font-semibold transition-colors cursor-pointer"
             >
-              <User size={16} className="text-red-500 group-hover:scale-110 transition-transform duration-200" />
-              <span>
-                My Account Info
-              </span>
+              <SquarePen size={16} className="text-red-500" />
+              <span>Write</span>
             </Link>
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 bg-green-500 rounded-full animate-ping" />
-              <span>
-                Server: <strong className="text-white">Connected</strong>
-              </span>
-            </div>
+
+            {user ? (
+              <div
+                className="flex items-center gap-2.5 text-zinc-400 group"
+              >
+                {user.profile_photo_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- presigned S3 URL, no fixed remote host to whitelist for next/image
+                  <img
+                    src={user.profile_photo_url}
+                    alt={user.username}
+                    width={32}
+                    height={32}
+                    className="w-8 h-8 rounded-full object-cover border border-zinc-700 group-hover:border-red-500 transition-colors"
+                  />
+                ) : (
+                  <span className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 group-hover:border-red-500 flex items-center justify-center font-bold text-xs text-white uppercase transition-colors">
+                    {(user.full_name || user.username).charAt(0)}
+                  </span>
+                )}
+                <span className="font-semibold text-white leading-none">
+                  {user.full_name || user.username}
+                </span>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-xl transition-colors cursor-pointer"
+              >
+                <User size={16} />
+                <span>Log In</span>
+              </Link>
+            )}
           </div>
+
         </div>
 
         {/* Filter Controls Area */}

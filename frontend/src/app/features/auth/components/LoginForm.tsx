@@ -37,7 +37,8 @@ export function LoginForm() {
         toast.success('Successfully logged in!', {
           description: 'Welcome back to Khela Dekho.',
         });
-        router.push('/');
+        const redirectUrl = searchParams.get('redirect') || '/';
+        router.push(redirectUrl);
         router.refresh();
       } else {
         toast.error('Authentication Failed', {
@@ -55,7 +56,8 @@ export function LoginForm() {
         toast.success('Account created successfully!', {
           description: 'Welcome to Khela Dekho.',
         });
-        router.push('/');
+        const redirectUrl = searchParams.get('redirect') || '/';
+        router.push(redirectUrl);
         router.refresh();
       } else {
         setFormError(result.error);

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { X, Calendar, Clock, Heart, Share2, Check } from 'lucide-react';
 import { Post } from '../types';
 import { getTagColor, getPostGradient, getReadTime, formatDate } from '../utils/postDisplay';
+import { PreviewComponent } from '../../create-post/components/preview-component';
 
 interface DetailModalProps {
   post: Post | null;
@@ -106,9 +107,59 @@ export function DetailModal({ post, onClose }: DetailModalProps) {
 
         {/* Modal Scrollable Body */}
         <div className="p-6 sm:p-8 overflow-y-auto flex-1 text-zinc-300 space-y-6 leading-relaxed">
-          <p className="text-base sm:text-lg leading-relaxed whitespace-pre-line text-zinc-200">
-            {post.content}
-          </p>
+          {/* Article Content Body Container */}
+          <div className="space-y-6">
+            {/* Cover Image if present */}
+            {post.image_url && (
+              <PreviewComponent type="image" url={post.image_url} title={post.title} className="mb-6" />
+            )}
+
+            {/* Embedded Playable Video Player inside content body */}
+            {post.video_url && (
+              <div className="my-6">
+                <PreviewComponent type="video" url={post.video_url} title="Post Video Content" />
+              </div>
+            )}
+
+            {/* Main Rich Text Content Body */}
+            {post.content.trim().startsWith('<') ? (
+              <div
+                className="text-base sm:text-lg leading-relaxed text-zinc-200 prose prose-invert max-w-none [&_img]:rounded-2xl [&_iframe]:rounded-2xl [&_iframe]:w-full [&_iframe]:aspect-video [&_blockquote]:border-l-4 [&_blockquote]:border-amber-500 [&_blockquote]:bg-zinc-950/60 [&_blockquote]:p-4 [&_blockquote]:rounded-r-xl"
+                dangerouslySetInnerHTML={{ __html: post.content }}
+              />
+            ) : (
+              <p className="text-base sm:text-lg leading-relaxed whitespace-pre-line text-zinc-200">
+                {post.content}
+              </p>
+            )}
+          </div>
+
+          {/* Reference Source Link if present */}
+          {post.reference_url && (
+            <div className="p-4 bg-zinc-950/80 border border-zinc-800 rounded-2xl flex items-center justify-between gap-4 mt-6">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider text-amber-400 block">
+                  Post Source Reference
+                </span>
+                <a
+                  href={post.reference_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm font-medium text-zinc-200 hover:text-white underline truncate max-w-md block"
+                >
+                  {post.reference_url}
+                </a>
+              </div>
+              <a
+                href={post.reference_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3.5 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xl text-xs font-bold transition-colors shrink-0"
+              >
+                Visit Source →
+              </a>
+            </div>
+          )}
 
           <p className="text-sm text-zinc-400 border-t border-zinc-800/60 pt-6">
             Disclaimer: Opinions expressed in this sports column represent those of the writer and are intended to inspire dialogue within the Khela Dekho community. We encourage readers to join the discussion.

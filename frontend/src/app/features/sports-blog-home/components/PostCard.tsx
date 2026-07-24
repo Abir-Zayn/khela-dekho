@@ -55,7 +55,7 @@ export function PostCard({ post, layoutMode, onClick }: PostCardProps) {
               {post.title}
             </h3>
             <p className="text-sm text-zinc-400 line-clamp-2 leading-relaxed">
-              {post.content}
+              {post.content.replace(/<[^>]*>?/gm, '')}
             </p>
           </div>
 
@@ -117,7 +117,7 @@ export function PostCard({ post, layoutMode, onClick }: PostCardProps) {
             {post.title}
           </h3>
           <p className="text-xs text-zinc-400 line-clamp-3 leading-relaxed mb-4">
-            {post.content}
+            {post.content.replace(/<[^>]*>?/gm, '')}
           </p>
         </div>
 
