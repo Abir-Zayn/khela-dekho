@@ -57,3 +57,13 @@ Thumbs.db
 graphify-out/
 **/graphify-out/
 
+# AI Assistant & Task tracking files
+CLAUDE.md
+AGENTS.md
+**/CLAUDE.md
+**/AGENTS.md
+worklist.md
+**/worklist.md
+work-history/
+**/work-history/
+
