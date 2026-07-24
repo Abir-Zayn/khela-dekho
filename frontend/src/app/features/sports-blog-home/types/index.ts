@@ -49,3 +49,79 @@ export interface SportsBlogHomeState {
   setSelectedPostId: (id: string | null) => void;
   resetFilters: () => void;
 }
+
+// --- Football Interfaces ---
+export interface FootballTeam {
+  id: number;
+  name: string;
+  shortName: string;
+  tla: string;
+  crest: string;
+}
+
+export interface FootballMatch {
+  id: number;
+  competition: { id: number; name: string; code: string; emblem: string };
+  utcDate: string;
+  status: 'IN_PLAY' | 'PAUSED' | 'HALF_TIME' | 'FINISHED' | 'TIMED' | 'SCHEDULED';
+  minute?: number;
+  homeTeam: FootballTeam;
+  awayTeam: FootballTeam;
+  score: {
+    fullTime: { home: number | null; away: number | null };
+    halfTime: { home: number | null; away: number | null };
+  };
+}
+
+// --- Cricket Interfaces ---
+export interface CricketScore {
+  r: number;
+  w: number;
+  o: number;
+  inning: string;
+}
+
+export interface CricketTeamInfo {
+  name: string;
+  shortname: string;
+  img?: string;
+}
+
+export interface CricketMatch {
+  id: string;
+  name: string;
+  matchType: string;
+  status: string;
+  venue: string;
+  date: string;
+  teams: string[];
+  teamInfo?: CricketTeamInfo[];
+  score?: CricketScore[];
+  isLive: boolean;
+  matchStarted: boolean;
+  matchEnded: boolean;
+}
+
+// --- Baseball Interfaces ---
+export interface BaseballTeam {
+  id: string;
+  name: string;
+  shortName: string;
+  badge?: string;
+}
+
+export interface BaseballMatch {
+  id: string;
+  event: string;
+  league: string;
+  season: string;
+  date: string;
+  time: string;
+  status: string;
+  homeTeam: BaseballTeam;
+  awayTeam: BaseballTeam;
+  homeScore: number | null;
+  awayScore: number | null;
+  venue?: string;
+  isLive: boolean;
+}

@@ -7,6 +7,8 @@ import Link from 'next/link';
 import { Header } from './components/Header';
 import { PostCard } from './components/PostCard';
 import { SkeletonGrid } from './components/SkeletonGrid';
+import { LiveScoreTicker } from './components/LiveScoreTicker';
+import { LeagueStandingsWidget } from './components/LeagueStandingsWidget';
 import { useSportsBlogStore } from './utils/store';
 import { stripHtml } from './utils/postDisplay';
 import { listAllPosts } from './actions/list_all_post';
@@ -97,64 +99,79 @@ export default function SportsBlogHome() {
       <Header authors={uniqueAuthors} categories={uniqueCategories} />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-[2000px] mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+      <main className="flex-1 max-w-[2000px] mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8">
 
-        {/* Loading State */}
-        {isLoading ? (
-          <SkeletonGrid layoutMode={layoutMode} />
-        ) : filteredPosts.length === 0 ? (
-          /* Empty State */
-          posts.length === 0 ? (
-            <div className="py-20 text-center border border-dashed border-zinc-800 rounded-3xl bg-zinc-900/10">
-              <Trophy size={40} className="text-zinc-600 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-zinc-400 mb-1">No Posts Yet</h3>
-              <p className="text-sm text-zinc-500 max-w-xs mx-auto mb-6">
-                Be the first to write a sports article and publish it to the community!
-              </p>
-              <Link
-                href="/create-post"
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold transition-all cursor-pointer"
-              >
-                <SquarePen size={16} />
-                <span>Write First Post</span>
-              </Link>
-            </div>
-          ) : (
-            <div className="py-20 text-center border border-dashed border-zinc-800 rounded-3xl bg-zinc-900/10">
-              <Trophy size={40} className="text-zinc-600 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-zinc-400 mb-1">No Matches Found</h3>
-              <p className="text-sm text-zinc-500 max-w-xs mx-auto mb-6">
-                We couldn&apos;t find any sports analysis matching your filter parameters.
-              </p>
-              <button
-                onClick={resetFilters}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl text-sm font-medium transition-all cursor-pointer border border-zinc-700"
-              >
-                <RotateCcw size={14} />
-                <span>Clear Search Filters</span>
-              </button>
-            </div>
-          )
-        ) : (
-          <div className="space-y-6">
-            {/* Posts Grid (4 Cards per row in grid view) / List */}
-            <div className={
-              layoutMode === 'list'
-                ? 'space-y-6'
-                : 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6'
-            }>
-              {allCards.map((post) => (
-                <PostCard
-                  key={post.id}
-                  post={post}
-                  layoutMode={layoutMode}
-                  borderRadius="rounded-[12px]"
-                  imageHeight="h-44"
-                />
-              ))}
-            </div>
+        {/* Live Sports Scores Ticker */}
+        <LiveScoreTicker />
+
+        {/* Content Section: Posts + Standings Sidebar */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+          {/* Main Posts Area (3 cols) */}
+          <div className="lg:col-span-3 space-y-6">
+
+            {/* Loading State */}
+            {isLoading ? (
+              <SkeletonGrid layoutMode={layoutMode} />
+            ) : filteredPosts.length === 0 ? (
+              /* Empty State */
+              posts.length === 0 ? (
+                <div className="py-20 text-center border border-dashed border-zinc-800 rounded-3xl bg-zinc-900/10">
+                  <Trophy size={40} className="text-zinc-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-zinc-400 mb-1">No Posts Yet</h3>
+                  <p className="text-sm text-zinc-500 max-w-xs mx-auto mb-6">
+                    Be the first to write a sports article and publish it to the community!
+                  </p>
+                  <Link
+                    href="/create-post"
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold transition-all cursor-pointer"
+                  >
+                    <SquarePen size={16} />
+                    <span>Write First Post</span>
+                  </Link>
+                </div>
+              ) : (
+                <div className="py-20 text-center border border-dashed border-zinc-800 rounded-3xl bg-zinc-900/10">
+                  <Trophy size={40} className="text-zinc-600 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-zinc-400 mb-1">No Matches Found</h3>
+                  <p className="text-sm text-zinc-500 max-w-xs mx-auto mb-6">
+                    We couldn&apos;t find any sports analysis matching your filter parameters.
+                  </p>
+                  <button
+                    onClick={resetFilters}
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl text-sm font-medium transition-all cursor-pointer border border-zinc-700"
+                  >
+                    <RotateCcw size={14} />
+                    <span>Clear Search Filters</span>
+                  </button>
+                </div>
+              )
+            ) : (
+              <div className="space-y-6">
+                {/* Posts Grid (3 Cards per row in grid view) / List */}
+                <div className={
+                  layoutMode === 'list'
+                    ? 'space-y-6'
+                    : 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6'
+                }>
+                  {allCards.map((post) => (
+                    <PostCard
+                      key={post.id}
+                      post={post}
+                      layoutMode={layoutMode}
+                      borderRadius="rounded-[12px]"
+                      imageHeight="h-44"
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-        )}
+
+          {/* Sidebar Area (1 col) */}
+          <div className="lg:col-span-1 space-y-6">
+            <LeagueStandingsWidget />
+          </div>
+        </div>
 
       </main>
 
