@@ -1,14 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
-import { Flame, ArrowLeft, Send } from 'lucide-react';
+import { Flame, ArrowLeft, Send, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getCurrentUser } from '../auth';
 import { LexicalEditor } from './components/LexicalEditor';
-import { PublishModal } from './components/PublishModal';
 import { CategoryTagsTile } from './components/CategoryTagsTile';
 import { createPostAction } from './actions/create_post_action';
 import { listCategories } from './actions/list_categories';
@@ -19,7 +18,6 @@ export default function CreatePostRoot() {
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [contentHtml, setContentHtml] = useState('');
-  const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -27,6 +25,11 @@ export default function CreatePostRoot() {
   const [availableTags, setAvailableTags] = useState<Tag[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+  // Media & Link URLs
+  const [coverImageUrl, setCoverImageUrl] = useState<string>('');
+  const [videoUrl, setVideoUrl] = useState<string>('');
+  const [referenceUrl, setReferenceUrl] = useState<string>('');
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -37,6 +40,27 @@ export default function CreatePostRoot() {
     listCategories().then(setCategories);
     listTags().then(setAvailableTags);
   }, []);
+
+  // Extract all image URLs inserted into content HTML automatically
+  const detectedArticleImages = useMemo(() => {
+    if (!contentHtml) return [];
+    const matches: string[] = [];
+    const regex = /<img[^>]+src=["']([^"']+)["']/gi;
+    let match;
+    while ((match = regex.exec(contentHtml)) !== null) {
+      if (match[1] && !matches.includes(match[1])) {
+        matches.push(match[1]);
+      }
+    }
+    return matches;
+  }, [contentHtml]);
+
+  // If user inserts an article image and hasn't set a cover image yet, auto-suggest first image
+  useEffect(() => {
+    if (detectedArticleImages.length > 0 && !coverImageUrl) {
+      setCoverImageUrl(detectedArticleImages[0]);
+    }
+  }, [detectedArticleImages, coverImageUrl]);
 
   const handleAddTag = (tagName: string) => {
     const trimmed = tagName.trim().replace(/^#/, '');
@@ -49,7 +73,8 @@ export default function CreatePostRoot() {
     setSelectedTags(selectedTags.filter((t) => t !== tagToRemove));
   };
 
-  const handleOpenPublishModal = () => {
+  // Direct Publish Action without re-confirm modal
+  const handlePublishDirect = async () => {
     if (!user) {
       toast.error('Authentication Required', {
         description: 'You must log in to publish your post.',
@@ -62,45 +87,34 @@ export default function CreatePostRoot() {
       return;
     }
     if (!selectedCategoryId) {
-      setFormError('Please select a category for your story before publishing.');
+      setFormError('Please select a category in Story Settings before publishing.');
       return;
     }
     if (!contentHtml.trim() || contentHtml === '<p></p>') {
       setFormError('Please write your story content before publishing.');
       return;
     }
-    setFormError(null);
-    setIsPublishModalOpen(true);
-  };
 
-  const handlePublish = async (publishData: {
-    category_id: string;
-    tags: string[];
-    image_url: string | null;
-    video_url: string | null;
-    reference_url: string | null;
-  }) => {
-    if (!user) {
-      toast.error('Authentication Required', {
-        description: 'You must log in to publish your post.',
-      });
-      router.push('/login?redirect=/create-post');
-      return;
-    }
     try {
       setIsPublishing(true);
       setFormError(null);
+
+      // Determine final cover image (explicit URL or first detected image)
+      const finalCoverImage =
+        coverImageUrl.trim() || (detectedArticleImages.length > 0 ? detectedArticleImages[0] : null);
+
       await createPostAction({
         title: title.trim(),
         content: contentHtml,
-        category_id: publishData.category_id,
-        tags: publishData.tags,
-        image_url: publishData.image_url,
-        video_url: publishData.video_url,
-        reference_url: publishData.reference_url,
+        category_id: selectedCategoryId,
+        tags: selectedTags,
+        image_url: finalCoverImage,
+        video_url: videoUrl.trim() || null,
+        reference_url: referenceUrl.trim() || null,
       });
+
       setIsPublishing(false);
-      setIsPublishModalOpen(false);
+      toast.success('Story Published Successfully!');
       router.push('/');
       router.refresh();
     } catch (err: unknown) {
@@ -113,7 +127,7 @@ export default function CreatePostRoot() {
   return (
     <div className="min-h-screen bg-zinc-950 text-white selection:bg-red-500 selection:text-white font-sans antialiased">
       {/* Top Header Navigation */}
-      <header className="sticky top-0 z-30 bg-zinc-950/80 backdrop-blur border-b border-zinc-900 px-4 sm:px-8 py-3.5">
+      <header className="sticky top-0 z-30 bg-zinc-950/90 backdrop-blur border-b border-zinc-900 px-4 sm:px-8 py-3.5">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
           {/* Brand & Draft Info */}
           <div className="flex items-center gap-4">
@@ -140,10 +154,20 @@ export default function CreatePostRoot() {
           {/* Right Action Bar */}
           <div className="flex items-center gap-4">
             <button
-              onClick={handleOpenPublishModal}
-              className="bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-widest px-4 py-2 rounded-full transition-all shadow-md shadow-red-950/40 flex items-center gap-1.5 cursor-pointer"
+              type="button"
+              onClick={handlePublishDirect}
+              disabled={isPublishing}
+              className="bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold text-xs uppercase tracking-widest px-5 py-2.5 rounded-full transition-all shadow-md shadow-red-950/40 flex items-center gap-2 cursor-pointer"
             >
-              <Send size={14} /> Publish...
+              {isPublishing ? (
+                <>
+                  <Loader2 size={14} className="animate-spin" /> Publishing...
+                </>
+              ) : (
+                <>
+                  <Send size={14} /> Publish Story
+                </>
+              )}
             </button>
 
             {user && (
@@ -171,8 +195,14 @@ export default function CreatePostRoot() {
       {/* Main Medium Writing Canvas */}
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
         {formError && (
-          <div className="mb-8 p-4 bg-red-950/60 border border-red-800 text-red-300 text-sm rounded-2xl animate-in fade-in">
-            {formError}
+          <div className="mb-8 p-4 bg-red-950/60 border border-red-800 text-red-300 text-sm rounded-2xl animate-in fade-in flex items-center justify-between">
+            <span>{formError}</span>
+            <button
+              onClick={() => setFormError(null)}
+              className="text-red-400 hover:text-white ml-4 font-bold"
+            >
+              ×
+            </button>
           </div>
         )}
 
@@ -191,7 +221,7 @@ export default function CreatePostRoot() {
           />
         </div>
 
-        {/* Collapsible Category & Tags Tile Component */}
+        {/* Collapsible Story Settings & Metadata Tile Component */}
         <CategoryTagsTile
           categories={categories}
           availableTags={availableTags}
@@ -203,6 +233,13 @@ export default function CreatePostRoot() {
           selectedTags={selectedTags}
           onAddTag={handleAddTag}
           onRemoveTag={handleRemoveTag}
+          coverImageUrl={coverImageUrl}
+          onChangeCoverImageUrl={setCoverImageUrl}
+          detectedArticleImages={detectedArticleImages}
+          videoUrl={videoUrl}
+          onChangeVideoUrl={setVideoUrl}
+          referenceUrl={referenceUrl}
+          onChangeReferenceUrl={setReferenceUrl}
         />
 
         {/* Lexical Rich Text Editor */}
@@ -211,18 +248,6 @@ export default function CreatePostRoot() {
           placeholder="Tell your story..."
         />
       </main>
-
-      {/* Medium Publish Modal */}
-      <PublishModal
-        isOpen={isPublishModalOpen}
-        onClose={() => setIsPublishModalOpen(false)}
-        onPublish={handlePublish}
-        title={title}
-        content={contentHtml}
-        isPublishing={isPublishing}
-        initialCategoryId={selectedCategoryId}
-        initialTags={selectedTags}
-      />
     </div>
   );
 }

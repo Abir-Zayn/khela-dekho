@@ -8,6 +8,7 @@ export interface PreviewComponentProps {
   url: string;
   title?: string;
   className?: string;
+  maxHeightClass?: string;
 }
 
 export function PreviewComponent({
@@ -15,6 +16,7 @@ export function PreviewComponent({
   url,
   title,
   className = '',
+  maxHeightClass = 'max-h-[550px]',
 }: PreviewComponentProps) {
   const [hasError, setHasError] = useState(false);
 
@@ -39,22 +41,22 @@ export function PreviewComponent({
 
   if (type === 'image') {
     return (
-      <div className={`overflow-hidden bg-zinc-950 border border-zinc-800 rounded-xl ${className}`}>
+      <div className={`overflow-hidden bg-zinc-950 border border-zinc-800 rounded-2xl shadow-xl ${className}`}>
         {hasError ? (
           <div className="p-4 text-center text-red-400 text-xs flex items-center justify-center gap-1.5">
             <AlertCircle size={14} /> Failed to load image preview. Check URL.
           </div>
         ) : (
-          <div className="relative group">
+          <div className="relative group flex flex-col items-center justify-center bg-zinc-900/80">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={cleanUrl}
               alt={title || 'Image Preview'}
               onError={() => setHasError(true)}
-              className="w-full max-h-[220px] object-cover rounded-xl"
+              className={`w-full ${maxHeightClass} object-cover sm:object-contain rounded-2xl transition-transform duration-200`}
             />
             {title && (
-              <p className="text-[11px] text-zinc-400 text-center py-1.5 italic bg-zinc-900/80 backdrop-blur">
+              <p className="w-full text-xs text-zinc-400 text-center py-2 italic bg-zinc-950/90 border-t border-zinc-800/80">
                 {title}
               </p>
             )}
