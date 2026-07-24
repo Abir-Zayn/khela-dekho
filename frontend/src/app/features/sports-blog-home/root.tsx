@@ -2,14 +2,13 @@
 
 import React, { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { RotateCcw, AlertTriangle, Trophy, Eye, Zap, SquarePen } from 'lucide-react';
+import { RotateCcw, AlertTriangle, Trophy, SquarePen } from 'lucide-react';
 import Link from 'next/link';
 import { Header } from './components/Header';
 import { PostCard } from './components/PostCard';
-import { DetailModal } from './components/DetailModal';
 import { SkeletonGrid } from './components/SkeletonGrid';
 import { useSportsBlogStore } from './utils/store';
-import { getReadTime, formatDate, getExcerpt, stripHtml } from './utils/postDisplay';
+import { stripHtml } from './utils/postDisplay';
 import { listAllPosts } from './actions/list_all_post';
 import { Post } from './types';
 
@@ -32,8 +31,6 @@ export default function SportsBlogHome() {
     selectedAuthor,
     selectedCategory,
     layoutMode,
-    selectedPostId,
-    setSelectedPostId,
     resetFilters
   } = useSportsBlogStore();
 
@@ -64,13 +61,6 @@ export default function SportsBlogHome() {
     });
   }, [posts, searchQuery, selectedAuthor, selectedCategory]);
 
-  // Identify the selected post details for modal view
-  const selectedPost = useMemo(() => {
-    if (selectedPostId === null) return null;
-    return posts.find(p => p.id === selectedPostId) || null;
-  }, [posts, selectedPostId]);
-
-  // For now, featured hero news will be added later. All posts are rendered in card grid.
   const allCards = filteredPosts;
 
   // Render Error State
@@ -160,7 +150,6 @@ export default function SportsBlogHome() {
                   layoutMode={layoutMode}
                   borderRadius="rounded-[12px]"
                   imageHeight="h-44"
-                  onClick={() => setSelectedPostId(post.id)}
                 />
               ))}
             </div>
@@ -179,13 +168,6 @@ export default function SportsBlogHome() {
           <p>© {new Date().getFullYear()} Khela Dekho Blog. All Rights Reserved. Dev Stack: FastAPI + Next.js 16 + Zustand + React Query.</p>
         </div>
       </footer>
-
-      {/* Detail Viewer Modal */}
-      <DetailModal
-        post={selectedPost}
-        onClose={() => setSelectedPostId(null)}
-      />
-
     </div>
   );
 }

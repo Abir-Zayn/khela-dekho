@@ -3,20 +3,17 @@ In this session what you will be doing is desigining the home screen .
 On the Home Screen it will hold the image in card order , there will be 4 cards in a row. 
 
 
-We will work on the featured news later. 
+In this session we will work on the visiting post page what does it means? 
+When user/readers clicks on the postcard then it will open up a new page based its id . Where he can read the post . 
 
+It will follow the similar way of how medium works. 
+For example in medium there is a post named 
 
-The card will be reusable component 
-it will have resizable border radius . pick by 12 radius by default.
+OpenAI Is In A Far Worse Position Than I Thought
 
-It will have image at top . Image size will be reusable. Pick a size by default.
-below the image show
-category
-It will have title of the blog post 
-Published by Author name .
-show the tags.
+When user clicks on this post 
+it will open the page of containing the post informations 
+like https://medium.com/@wlockett/openai-is-in-a-far-worse-position-than-i-thought-1605b424eb58
+where he can see post content
 
-The card size will be 400px height and 348px width
-use the Shadcn card component . 
-
-increase the width to 480px
+to achieve this should we need to change anything on our backend or changing in frontend is enough

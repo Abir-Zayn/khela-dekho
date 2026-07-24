@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { Calendar, Clock, ArrowRight, Heart, Tag as TagIcon } from 'lucide-react';
 import { Post, LayoutMode } from '../types';
 import { getTagColor, getPostGradient, getReadTime, formatDate, getExcerpt } from '../utils/postDisplay';
@@ -34,10 +35,11 @@ export function PostCard({
   const tags = post.tags || [];
 
   return (
-    <Card
-      onClick={onClick}
-      className={`group flex flex-col justify-between ${cardWidth} ${cardHeight} ${borderRadius} overflow-hidden cursor-pointer mx-auto ${className}`}
-    >
+    <Link href={`/posts/${post.id}`} className="block h-full w-full">
+      <Card
+        onClick={onClick}
+        className={`group flex flex-col justify-between ${cardWidth} ${cardHeight} ${borderRadius} overflow-hidden cursor-pointer mx-auto ${className}`}
+      >
       {/* 1. Top Image Container (Reusable imageHeight & resizable radius top) */}
       <div className={`relative w-full ${imageHeight} overflow-hidden bg-gradient-to-br ${gradient} border-b border-zinc-800/60 shrink-0`}>
         {post.image_url ? (
@@ -122,5 +124,6 @@ export function PostCard({
         </div>
       </div>
     </Card>
+    </Link>
   );
 }
