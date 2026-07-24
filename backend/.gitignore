@@ -1,10 +1,27 @@
+# Environment / secrets
 .env
-.reset_db.py
-.worklist.md
+.env.*
 
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Virtualenv
+.venv/
+venv/
+
+# Local database (stale SQLite dev file; app uses Postgres)
+blog.db
+*.sqlite3
+
+# Project scratch / agent files
 graphify-out/
 agents/
 CLAUDE.md
 AGENTS.md
 worklist.md
-work-history/
+work-history/
