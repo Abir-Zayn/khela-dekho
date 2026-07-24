@@ -1,135 +1,126 @@
 'use client';
 
 import React from 'react';
-import { Calendar, Clock, ArrowRight, Heart } from 'lucide-react';
+import { Calendar, Clock, ArrowRight, Heart, Tag as TagIcon } from 'lucide-react';
 import { Post, LayoutMode } from '../types';
-import { getTagColor, getPostGradient, getReadTime, formatDate } from '../utils/postDisplay';
+import { getTagColor, getPostGradient, getReadTime, formatDate, getExcerpt } from '../utils/postDisplay';
+import { Card, CardTitle, CardFooter } from '@/components/ui/card';
 
-interface PostCardProps {
+export interface PostCardProps {
   post: Post;
-  layoutMode: LayoutMode;
-  onClick: () => void;
+  layoutMode?: LayoutMode;
+  borderRadius?: string; // Default: 'rounded-[12px]' (resizable border radius)
+  imageHeight?: string;  // Default: 'h-[180px]' (reusable image height)
+  cardWidth?: string;   // Default: 'w-full max-w-[480px]' (480px card width)
+  cardHeight?: string;  // Default: 'h-[400px]' (400px card height)
+  className?: string;
+  onClick?: () => void;
 }
 
-export function PostCard({ post, layoutMode, onClick }: PostCardProps) {
-  const tag = post.category.name;
-  const tagColor = getTagColor(tag);
+export function PostCard({
+  post,
+  layoutMode = 'grid',
+  borderRadius = 'rounded-[12px]',
+  imageHeight = 'h-[180px]',
+  cardWidth = 'w-full max-w-[480px]',
+  cardHeight = 'h-[400px]',
+  className = '',
+  onClick,
+}: PostCardProps) {
+  const categoryName = post.category?.name || 'General';
+  const categoryColor = getTagColor(categoryName);
   const gradient = getPostGradient(post.id);
   const readTime = getReadTime(post.content);
+  const tags = post.tags || [];
 
-  if (layoutMode === 'list') {
-    return (
-      <div
-        onClick={onClick}
-        className="group relative flex flex-col md:flex-row items-stretch bg-zinc-900 border border-zinc-800/80 hover:border-red-500/50 rounded-2xl overflow-hidden transition-all duration-300 shadow-xl cursor-pointer"
-      >
-        {/* Left Side Aesthetic Sports Color Banner */}
-        <div className={`w-full md:w-48 bg-gradient-to-br ${gradient} flex flex-col justify-between p-6 border-b md:border-b-0 md:border-r border-zinc-800`}>
-          <span className={`inline-self-start self-start px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider border ${tagColor}`}>
-            {tag}
-          </span>
-          <div className="mt-8 md:mt-0 flex items-center gap-2.5 text-zinc-400 group-hover:text-white transition-colors">
-            <span className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-xs border border-zinc-700 text-white uppercase">
-              {post.author.charAt(0)}
-            </span>
-            <span className="text-xs font-medium truncate max-w-[120px]">{post.author}</span>
-          </div>
-        </div>
-
-        {/* Right Side Content */}
-        <div className="flex-1 flex flex-col justify-between p-6">
-          <div>
-            {/* Metadata row */}
-            <div className="flex items-center gap-4 text-xs text-zinc-500 mb-3">
-              <span className="flex items-center gap-1">
-                <Calendar size={13} />
-                {formatDate(post.date_posted)}
-              </span>
-              <span className="flex items-center gap-1">
-                <Clock size={13} />
-                {readTime} min read
-              </span>
-            </div>
-
-            <h3 className="text-xl font-bold text-white group-hover:text-red-500 transition-colors line-clamp-1 mb-2">
-              {post.title}
-            </h3>
-            <p className="text-sm text-zinc-400 line-clamp-2 leading-relaxed">
-              {post.content.replace(/<[^>]*>?/gm, '')}
-            </p>
-          </div>
-
-          <div className="mt-6 flex items-center justify-between">
-            <span className="flex items-center gap-1.5 text-xs font-semibold text-zinc-500">
-              <Heart size={13} className="text-red-500" />
-              {post.reaction_counts.like}
-            </span>
-            <span className="flex items-center gap-1 text-xs font-bold text-red-500 group-hover:translate-x-1 transition-transform">
-              READ ARTICLE <ArrowRight size={14} />
-            </span>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Grid Layout (default)
   return (
-    <div
+    <Card
       onClick={onClick}
-      className="group flex flex-col bg-zinc-900 border border-zinc-800/85 hover:border-red-500/50 rounded-2xl overflow-hidden transition-all duration-300 shadow-lg hover:shadow-2xl hover:shadow-red-950/10 hover:-translate-y-1 cursor-pointer h-full"
+      className={`group flex flex-col justify-between ${cardWidth} ${cardHeight} ${borderRadius} overflow-hidden cursor-pointer mx-auto ${className}`}
     >
-      {/* Aesthetic Top Sports Banner Image Area */}
-      <div className={`h-40 bg-gradient-to-br ${gradient} p-5 flex flex-col justify-between border-b border-zinc-800/50`}>
-        <div className="flex items-center justify-between">
-          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${tagColor}`}>
-            {tag}
+      {/* 1. Top Image Container (Reusable imageHeight & resizable radius top) */}
+      <div className={`relative w-full ${imageHeight} overflow-hidden bg-gradient-to-br ${gradient} border-b border-zinc-800/60 shrink-0`}>
+        {post.image_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={post.image_url}
+            alt={post.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        ) : (
+          <div className="w-full h-full p-4 flex flex-col justify-between bg-gradient-to-br from-red-600/20 via-zinc-900 to-zinc-950">
+            <span className="text-3xl opacity-20 font-black italic tracking-tighter text-white self-end">
+              KHELA DEKHO
+            </span>
+          </div>
+        )}
+
+        {/* Top Badges Overlay (Category & Likes) */}
+        <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none z-10">
+          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border backdrop-blur-md bg-black/60 ${categoryColor}`}>
+            {categoryName}
           </span>
-          <span className="flex items-center gap-1 text-xs font-bold text-white/50 group-hover:text-white transition-colors bg-black/35 backdrop-blur px-2 py-0.5 rounded border border-white/5">
+          <span className="flex items-center gap-1 text-[11px] font-bold text-white/90 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/10">
             <Heart size={11} className="text-red-500" />
-            {post.reaction_counts.like}
+            {post.reaction_counts?.like || 0}
           </span>
-        </div>
-        <div className="flex items-center gap-2 text-zinc-300 group-hover:text-white transition-colors bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/5 w-fit max-w-[85%]">
-          <span className="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center font-bold text-[10px] border border-zinc-700 text-white uppercase shrink-0">
-            {post.author.charAt(0)}
-          </span>
-          <span className="text-xs font-medium truncate">{post.author}</span>
         </div>
       </div>
 
-      {/* Card Content */}
-      <div className="p-5 flex-1 flex flex-col justify-between">
+      {/* 2. Below Image Content */}
+      <div className="p-4 flex-1 flex flex-col justify-between overflow-hidden">
         <div>
-          {/* Date & Read time */}
-          <div className="flex items-center gap-3 text-[11px] text-zinc-500 mb-3">
-            <span className="flex items-center gap-1">
-              <Calendar size={12} />
-              {formatDate(post.date_posted)}
-            </span>
-            <span className="flex items-center gap-1">
-              <Clock size={12} />
-              {readTime} min read
-            </span>
+          {/* Category */}
+          <div className="text-[11px] font-bold uppercase tracking-wider text-red-500 mb-1">
+            {categoryName}
           </div>
 
-          <h3 className="text-lg font-bold text-white group-hover:text-red-500 transition-colors line-clamp-1 mb-2">
+          {/* Title of the blog post */}
+          <CardTitle className="text-sm sm:text-base group-hover:text-red-500 transition-colors line-clamp-2 leading-snug mb-1">
             {post.title}
-          </h3>
-          <p className="text-xs text-zinc-400 line-clamp-3 leading-relaxed mb-4">
-            {post.content.replace(/<[^>]*>?/gm, '')}
+          </CardTitle>
+
+          {/* Published by Author name */}
+          <p className="text-xs text-zinc-400 font-medium mb-2">
+            Published by <span className="text-zinc-200 font-semibold">{post.author}</span>
+          </p>
+
+          {/* Excerpt */}
+          <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">
+            {getExcerpt(post.content, 90)}
           </p>
         </div>
 
-        <div className="pt-4 border-t border-zinc-800/60 flex items-center justify-between">
-          <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-widest">
-            SPORTS BLOG
-          </span>
-          <span className="flex items-center gap-1 text-xs font-bold text-red-500 group-hover:translate-x-1 transition-transform">
-            READ ARTICLE <ArrowRight size={13} />
-          </span>
+        <div>
+          {/* Tags list */}
+          {tags.length > 0 ? (
+            <div className="flex flex-wrap items-center gap-1 my-2 pt-2 border-t border-zinc-800/40">
+              <TagIcon size={10} className="text-zinc-500 mr-0.5" />
+              {tags.slice(0, 3).map((t) => (
+                <span
+                  key={t.id || t.name}
+                  className="text-[10px] text-zinc-400 bg-zinc-950 px-2 py-0.5 rounded border border-zinc-800 truncate max-w-[100px]"
+                >
+                  #{t.name}
+                </span>
+              ))}
+              {tags.length > 3 && (
+                <span className="text-[10px] text-zinc-500">+{tags.length - 3}</span>
+              )}
+            </div>
+          ) : (
+            <div className="my-2 pt-2 border-t border-zinc-800/40" />
+          )}
+
+          {/* Footer Metadata */}
+          <CardFooter className="p-0 flex items-center justify-between text-[11px] text-zinc-500">
+            <span>{formatDate(post.date_posted)}</span>
+            <span className="flex items-center gap-1 text-xs font-bold text-red-500 group-hover:translate-x-1 transition-transform">
+              READ ARTICLE <ArrowRight size={11} />
+            </span>
+          </CardFooter>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

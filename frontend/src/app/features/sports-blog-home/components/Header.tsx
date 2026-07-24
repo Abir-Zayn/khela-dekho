@@ -9,9 +9,10 @@ import { getCurrentUser } from '../../auth';
 
 interface HeaderProps {
   authors: string[];
+  categories?: string[];
 }
 
-export function Header({ authors }: HeaderProps) {
+export function Header({ authors, categories = [] }: HeaderProps) {
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => getCurrentUser(),
@@ -22,12 +23,14 @@ export function Header({ authors }: HeaderProps) {
     setSearchQuery,
     selectedAuthor,
     setSelectedAuthor,
+    selectedCategory,
+    setSelectedCategory,
     layoutMode,
     setLayoutMode,
     resetFilters,
   } = useSportsBlogStore();
 
-  const hasActiveFilters = searchQuery !== '' || selectedAuthor !== '';
+  const hasActiveFilters = searchQuery !== '' || selectedAuthor !== '' || selectedCategory !== '';
 
   return (
     <header className="w-full bg-zinc-950 text-white border-b border-zinc-800">
@@ -38,7 +41,7 @@ export function Header({ authors }: HeaderProps) {
       </div>
 
       {/* Main Header Container */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-[2000px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           {/* Logo Brand Area */}
           <div className="flex items-center gap-3">
@@ -119,8 +122,29 @@ export function Header({ authors }: HeaderProps) {
 
           {/* Filters & Toggles */}
           <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
+            {/* Category Dropdown */}
+            {categories.length > 0 && (
+              <div className="relative w-full sm:w-auto min-w-[140px]">
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full bg-zinc-950/80 text-white border border-zinc-800 focus:border-red-500 rounded-xl py-2.5 px-4 text-sm outline-none transition-all appearance-none cursor-pointer"
+                >
+                  <option value="">All Categories</option>
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-zinc-500 text-xs">
+                  ▼
+                </div>
+              </div>
+            )}
+
             {/* Author Dropdown */}
-            <div className="relative w-full sm:w-auto min-w-[160px]">
+            <div className="relative w-full sm:w-auto min-w-[140px]">
               <select
                 value={selectedAuthor}
                 onChange={(e) => setSelectedAuthor(e.target.value)}

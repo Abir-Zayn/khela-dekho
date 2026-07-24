@@ -27,7 +27,7 @@ export function DetailModal({ post, onClose }: DetailModalProps) {
 
   if (!post) return null;
 
-  const tag = post.category.name;
+  const tag = post.category?.name || 'General';
   const tagColor = getTagColor(tag);
   const gradient = getPostGradient(post.id);
   const readTime = getReadTime(post.content);

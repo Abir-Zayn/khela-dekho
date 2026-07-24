@@ -29,7 +29,22 @@ export const getTagColor = (tag: string) => TAG_COLORS[tag] || 'bg-zinc-500/10 t
 
 export const getPostGradient = (id: string) => GRADIENTS[hashToIndex(id, GRADIENTS.length)];
 
-export const getReadTime = (content: string) => Math.max(1, Math.ceil(content.split(/\s+/).length / 200));
+export const stripHtml = (html: string): string => {
+  if (!html) return '';
+  return html.replace(/<[^>]*>?/gm, '').trim();
+};
+
+export const getExcerpt = (html: string, maxLength: number = 200): string => {
+  const plainText = stripHtml(html);
+  if (plainText.length <= maxLength) return plainText;
+  return `${plainText.substring(0, maxLength)}...`;
+};
+
+export const getReadTime = (content: string) => {
+  const plainText = stripHtml(content);
+  const wordCount = plainText.split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.ceil(wordCount / 200));
+};
 
 export const formatDate = (isoDate: string) =>
   new Date(isoDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });

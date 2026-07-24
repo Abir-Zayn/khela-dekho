@@ -39,10 +39,12 @@ export type LayoutMode = 'grid' | 'list';
 export interface SportsBlogHomeState {
   searchQuery: string;
   selectedAuthor: string;
+  selectedCategory: string;
   layoutMode: LayoutMode;
   selectedPostId: string | null;
   setSearchQuery: (query: string) => void;
   setSelectedAuthor: (author: string) => void;
+  setSelectedCategory: (category: string) => void;
   setLayoutMode: (mode: LayoutMode) => void;
   setSelectedPostId: (id: string | null) => void;
   resetFilters: () => void;
