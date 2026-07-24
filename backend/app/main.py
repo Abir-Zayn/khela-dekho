@@ -11,7 +11,7 @@ from sqlalchemy.orm import selectinload
 
 from app import models
 from app.database import Base, engine, get_db
-from app.routers import posts, users, auth, categories, tags
+from app.routers import posts, users, auth, categories, tags, livescores, cricket, baseball
 
 
 @asynccontextmanager
@@ -63,7 +63,11 @@ app.include_router(posts.router)
 app.include_router(auth.router)
 app.include_router(categories.router)
 app.include_router(tags.router)
+app.include_router(livescores.router, prefix="/api/v1")
+app.include_router(cricket.router, prefix="/api/v1")
+app.include_router(baseball.router, prefix="/api/v1")
 
 @app.get("/", include_in_schema=False, name="home")
 async def home():
-    return {"message": "Welcome to Khela Dekho Sports Blog API. Visit /docs for API documentation."}
+    return {"message": "Welcome to Khela Dekho Sports Blog API. Multi-sport live engine active."}
+
