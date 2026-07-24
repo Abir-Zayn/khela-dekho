@@ -9,10 +9,7 @@ import {
   ChevronDown,
   ChevronUp,
   Image as ImageIcon,
-  Video,
-  Link as LinkIcon,
   Check,
-  Sparkles,
 } from 'lucide-react';
 import type { Category, Tag } from '../types';
 
@@ -24,13 +21,9 @@ interface CategoryTagsTileProps {
   selectedTags: string[];
   onAddTag: (tagName: string) => void;
   onRemoveTag: (tagName: string) => void;
-  coverImageUrl: string;
-  onChangeCoverImageUrl: (url: string) => void;
+  // Read-only: the cover image is the first image inserted into the story, so
+  // there is no cover input. This drives a small status badge only.
   detectedArticleImages?: string[];
-  videoUrl: string;
-  onChangeVideoUrl: (url: string) => void;
-  referenceUrl: string;
-  onChangeReferenceUrl: (url: string) => void;
 }
 
 export function CategoryTagsTile({
@@ -41,21 +34,13 @@ export function CategoryTagsTile({
   selectedTags,
   onAddTag,
   onRemoveTag,
-  coverImageUrl,
-  onChangeCoverImageUrl,
   detectedArticleImages = [],
-  videoUrl,
-  onChangeVideoUrl,
-  referenceUrl,
-  onChangeReferenceUrl,
 }: CategoryTagsTileProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [tagInput, setTagInput] = useState('');
-  const [coverSourceMode, setCoverSourceMode] = useState<'detected' | 'custom'>(
-    detectedArticleImages.length > 0 ? 'detected' : 'custom'
-  );
 
   const selectedCatName = categories.find((c) => c.id === selectedCategoryId)?.name;
+  const hasCover = detectedArticleImages.length > 0;
 
   const handleAdd = (name: string) => {
     const trimmed = name.trim().replace(/^#/, '');
@@ -83,7 +68,7 @@ export function CategoryTagsTile({
         <div className="flex items-center gap-2.5 flex-wrap">
           <div className="flex items-center gap-1.5 font-bold text-xs uppercase tracking-wider text-zinc-300">
             <Layers size={14} className="text-amber-500" />
-            <span>Story Settings & Metadata</span>
+            <span>Playstyle Formation</span>
           </div>
 
           {selectedCatName ? (
@@ -102,11 +87,15 @@ export function CategoryTagsTile({
             </span>
           )}
 
-          {coverImageUrl && (
-            <span className="bg-green-500/10 border border-green-500/30 text-green-400 text-xs px-2.5 py-0.5 rounded-full font-medium flex items-center gap-1">
-              <ImageIcon size={11} /> Cover Image Set
-            </span>
-          )}
+          <span
+            className={`text-xs px-2.5 py-0.5 rounded-full font-medium flex items-center gap-1 ${
+              hasCover
+                ? 'bg-green-500/10 border border-green-500/30 text-green-400'
+                : 'bg-zinc-800/60 border border-zinc-700 text-zinc-400'
+            }`}
+          >
+            <ImageIcon size={11} /> {hasCover ? 'Cover: first image' : 'Cover: default'}
+          </span>
         </div>
 
         <div className="text-zinc-400 hover:text-white transition-colors">
@@ -142,95 +131,6 @@ export function CategoryTagsTile({
                 );
               })}
             </div>
-          </div>
-
-          {/* 2. Cover Image Section (Article Detection or Custom URL) */}
-          <div className="pt-2 border-t border-zinc-800/60">
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-zinc-300 flex items-center gap-1.5">
-                <ImageIcon size={14} className="text-amber-500" /> Cover Image
-              </label>
-
-              {detectedArticleImages.length > 0 && (
-                <div className="flex items-center gap-1 bg-zinc-950 p-0.5 rounded-lg border border-zinc-800">
-                  <button
-                    type="button"
-                    onClick={() => setCoverSourceMode('detected')}
-                    className={`text-[11px] font-bold px-2.5 py-1 rounded-md transition-colors ${
-                      coverSourceMode === 'detected'
-                        ? 'bg-red-600 text-white'
-                        : 'text-zinc-400 hover:text-white'
-                    }`}
-                  >
-                    Article Images ({detectedArticleImages.length})
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCoverSourceMode('custom')}
-                    className={`text-[11px] font-bold px-2.5 py-1 rounded-md transition-colors ${
-                      coverSourceMode === 'custom'
-                        ? 'bg-red-600 text-white'
-                        : 'text-zinc-400 hover:text-white'
-                    }`}
-                  >
-                    Custom URL
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Option A: Select from Article Images */}
-            {detectedArticleImages.length > 0 && coverSourceMode === 'detected' && (
-              <div className="space-y-2 mb-3">
-                <p className="text-[11px] text-zinc-400 flex items-center gap-1">
-                  <Sparkles size={12} className="text-amber-400" /> Select an image inserted in your story as the Cover Image:
-                </p>
-                <div className="flex flex-wrap gap-3 overflow-x-auto p-2 bg-zinc-950 rounded-xl border border-zinc-800">
-                  {detectedArticleImages.map((imgUrl, idx) => {
-                    const isSelected = coverImageUrl === imgUrl;
-                    return (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => onChangeCoverImageUrl(imgUrl)}
-                        className={`relative group rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
-                          isSelected
-                            ? 'border-red-500 ring-2 ring-red-500/50 scale-105'
-                            : 'border-zinc-800 hover:border-zinc-600 opacity-80 hover:opacity-100'
-                        }`}
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={imgUrl}
-                          alt={`Article Image ${idx + 1}`}
-                          className="w-24 h-16 object-cover"
-                        />
-                        {isSelected && (
-                          <div className="absolute inset-0 bg-red-600/30 backdrop-blur-[1px] flex items-center justify-center">
-                            <span className="bg-red-600 text-white rounded-full p-1 shadow-md">
-                              <Check size={12} />
-                            </span>
-                          </div>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* Option B: Custom Image URL Input */}
-            {(detectedArticleImages.length === 0 || coverSourceMode === 'custom') && (
-              <div className="space-y-1">
-                <input
-                  type="url"
-                  placeholder="https://images.unsplash.com/... (Cover image URL)"
-                  value={coverImageUrl}
-                  onChange={(e) => onChangeCoverImageUrl(e.target.value)}
-                  className="w-full bg-zinc-950 text-white placeholder:text-zinc-600 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs focus:border-red-500 focus:outline-none transition-all"
-                />
-              </div>
-            )}
           </div>
 
           {/* 3. Tags Section */}
@@ -301,34 +201,6 @@ export function CategoryTagsTile({
             )}
           </div>
 
-          {/* 4. Optional Media & References Links */}
-          <div className="pt-2 border-t border-zinc-800/60 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5 flex items-center gap-1.5">
-                <Video size={14} className="text-amber-500" /> Video Stream Link (Optional)
-              </label>
-              <input
-                type="url"
-                placeholder="YouTube / Vimeo video link"
-                value={videoUrl}
-                onChange={(e) => onChangeVideoUrl(e.target.value)}
-                className="w-full bg-zinc-950 text-white placeholder:text-zinc-600 border border-zinc-800 rounded-xl px-3 py-1.5 text-xs focus:border-red-500 focus:outline-none transition-all"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-300 mb-1.5 flex items-center gap-1.5">
-                <LinkIcon size={14} className="text-amber-500" /> Reference URL (Optional)
-              </label>
-              <input
-                type="url"
-                placeholder="External source article link"
-                value={referenceUrl}
-                onChange={(e) => onChangeReferenceUrl(e.target.value)}
-                className="w-full bg-zinc-950 text-white placeholder:text-zinc-600 border border-zinc-800 rounded-xl px-3 py-1.5 text-xs focus:border-red-500 focus:outline-none transition-all"
-              />
-            </div>
-          </div>
         </div>
       )}
     </div>

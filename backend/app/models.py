@@ -21,6 +21,11 @@ class ReactionType(str, enum.Enum):
     LIKE = "like"
 
 
+class PostStatus(str, enum.Enum):
+    DRAFT = "draft"
+    PUBLISHED = "published"
+
+
 
 class User(Base):
     __tablename__ = "users"
@@ -91,17 +96,34 @@ class Post(Base):
     __tablename__ = "posts"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid7)
+    # Drafts may be saved title-only, so title is the single always-present field.
     title: Mapped[str] = mapped_column(String(100), nullable=False)
-    content: Mapped[str] = mapped_column(Text, nullable=False)
+    # Nullable for drafts: content/category may not exist yet while writing.
+    content: Mapped[str | None] = mapped_column(Text, nullable=True)
     user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("users.id"), nullable=False, index=True
     )
-    category_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("categories.id", ondelete="RESTRICT"), nullable=False, index=True
+    category_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("categories.id", ondelete="RESTRICT"), nullable=True, index=True
+    )
+    # Draft vs published lifecycle. Public reads must filter to PUBLISHED.
+    status: Mapped[PostStatus] = mapped_column(
+        # pyrefly: ignore [no-matching-overload]
+        Enum(PostStatus, name="post_status", values_callable=lambda e: [m.value for m in e]),
+        default=PostStatus.DRAFT,
+        server_default=PostStatus.DRAFT.value,
+        nullable=False,
+        index=True,
     )
     date_posted: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),
+    )
+    # Bumped on every autosave; used for last-write-wins conflict detection.
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
     )
     likes: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     love_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
@@ -113,9 +135,14 @@ class Post(Base):
     reference_url: Mapped[str | None ] =mapped_column(String(500), nullable=True)
     
     #SEARCH OPTIMIZATION
+    # coalesce so drafts with NULL content don't break the generated column.
+    # Drafts are excluded from search at the query level (status filter).
     search_vector: Mapped[str] = mapped_column(
         TSVECTOR,
-        Computed("to_tsvector('english', title || ' ' || content)", persisted=True),
+        Computed(
+            "to_tsvector('english', coalesce(title, '') || ' ' || coalesce(content, ''))",
+            persisted=True,
+        ),
         nullable=False,
     )
 

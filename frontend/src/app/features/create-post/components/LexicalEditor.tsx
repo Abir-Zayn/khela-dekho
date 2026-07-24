@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
@@ -15,8 +16,8 @@ import { HeadingNode, QuoteNode } from '@lexical/rich-text';
 import { ListNode, ListItemNode } from '@lexical/list';
 import { CodeNode, CodeHighlightNode } from '@lexical/code';
 import { AutoLinkNode, LinkNode } from '@lexical/link';
-import { $generateHtmlFromNodes } from '@lexical/html';
-import { EditorState, LexicalEditor as LexicalEditorType } from 'lexical';
+import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html';
+import { $getRoot, $insertNodes, EditorState, LexicalEditor as LexicalEditorType } from 'lexical';
 import { FloatingToolbarPlugin } from './FloatingToolbarPlugin';
 import { SlashCommandPlugin } from './SlashCommandPlugin';
 import { MediaBlockNode } from './MediaBlockNode';
@@ -24,6 +25,31 @@ import { MediaBlockNode } from './MediaBlockNode';
 interface LexicalEditorProps {
   onChange: (htmlContent: string) => void;
   placeholder?: string;
+  // HTML to seed the editor with once on mount (restoring a saved draft).
+  initialHtml?: string;
+}
+
+// Seeds the editor from saved draft HTML exactly once. Runs after the composer
+// mounts so the parsed nodes replace the empty root; the OnChangePlugin then
+// re-emits the HTML back to the parent, keeping state in sync.
+function InitialHtmlPlugin({ html }: { html?: string }) {
+  const [editor] = useLexicalComposerContext();
+  const seeded = useRef(false);
+
+  useEffect(() => {
+    if (!html || seeded.current) return;
+    seeded.current = true;
+    editor.update(() => {
+      const dom = new DOMParser().parseFromString(html, 'text/html');
+      const nodes = $generateNodesFromDOM(editor, dom);
+      const root = $getRoot();
+      root.clear();
+      root.select();
+      $insertNodes(nodes);
+    });
+  }, [editor, html]);
+
+  return null;
 }
 
 const theme = {
@@ -49,7 +75,7 @@ const theme = {
   link: 'text-red-400 hover:text-red-300 underline font-medium cursor-pointer',
 };
 
-export function LexicalEditor({ onChange, placeholder = "Type / for actions, or tell your story..." }: LexicalEditorProps) {
+export function LexicalEditor({ onChange, placeholder = "Type / for actions, or tell your story...", initialHtml }: LexicalEditorProps) {
   const initialConfig = {
     namespace: 'MediumKhelaDekhoEditor',
     theme,
@@ -99,6 +125,7 @@ export function LexicalEditor({ onChange, placeholder = "Type / for actions, or 
         <LinkPlugin />
         <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
         <OnChangePlugin onChange={handleEditorChange} />
+        <InitialHtmlPlugin html={initialHtml} />
       </div>
     </LexicalComposer>
   );

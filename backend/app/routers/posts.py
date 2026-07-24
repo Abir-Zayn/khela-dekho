@@ -1,4 +1,5 @@
 import re
+from datetime import UTC, datetime
 from typing import Annotated
 import uuid
 from uuid6 import uuid7
@@ -11,6 +12,9 @@ from app import models
 from app.database import get_db
 from app.s3 import generate_presigned_upload
 from app.schemas import (
+    DraftAck,
+    DraftResponse,
+    DraftUpsert,
     PostCreate,
     PostResponse,
     PostUpdate,
@@ -83,7 +87,7 @@ async def get_posts(
         selectinload(models.Post.user),
         selectinload(models.Post.category),
         selectinload(models.Post.tags),
-    )
+    ).where(models.Post.status == models.PostStatus.PUBLISHED)
     if tag:
         stmt = stmt.join(models.Post.tags).where(models.Tag.slug == tag)
     if q:
@@ -118,6 +122,176 @@ async def get_posts(
     return posts
 
 
+@router.post("/drafts", response_model=DraftAck, status_code=status.HTTP_201_CREATED)
+async def create_draft(
+    current_user: Annotated[models.User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    """Create an empty draft and return its id. The client saves into it as the
+    user types. Title starts as an empty-ish placeholder because title is NOT NULL;
+    it is replaced on the first autosave."""
+    draft = models.Post(
+        title="Untitled draft",
+        content=None,
+        user_id=current_user.id,
+        category_id=None,
+        status=models.PostStatus.DRAFT,
+    )
+    db.add(draft)
+    await db.commit()
+    await db.refresh(draft)
+    return draft
+
+
+@router.get("/drafts", response_model=list[DraftResponse])
+async def list_drafts(
+    current_user: Annotated[models.User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    """List the current user's drafts, newest first, for a resume UI."""
+    res = await db.execute(
+        select(models.Post)
+        .options(selectinload(models.Post.tags))
+        .where(
+            models.Post.user_id == current_user.id,
+            models.Post.status == models.PostStatus.DRAFT,
+        )
+        .order_by(models.Post.updated_at.desc())
+    )
+    return res.scalars().all()
+
+
+@router.put("/{post_id}/draft", response_model=DraftAck)
+async def save_draft(
+    post_id: uuid.UUID,
+    payload: DraftUpsert,
+    current_user: Annotated[models.User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    """Autosave target. Permissive: updates only provided fields, no publish-level
+    validation. Returns a light ack to keep saves fast."""
+    res = await db.execute(
+        select(models.Post)
+        .options(selectinload(models.Post.tags))
+        .where(models.Post.id == post_id)
+    )
+    post = res.scalars().first()
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Draft not found")
+    if not can_modify_post(current_user, post):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to edit this draft",
+        )
+    if post.status == models.PostStatus.PUBLISHED:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This post is already published; use the update endpoint instead",
+        )
+
+    # Last-write-wins conflict detection: if the server copy was touched after the
+    # client's known version, the draft was edited elsewhere (another device/tab).
+    if payload.client_updated_at is not None:
+        server_ts = post.updated_at
+        if server_ts.tzinfo is None:
+            server_ts = server_ts.replace(tzinfo=UTC)
+        if payload.client_updated_at < server_ts:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Draft was modified elsewhere. Reload to get the latest version.",
+            )
+
+    data = payload.model_dump(exclude_unset=True, exclude={"client_updated_at"})
+    if "title" in data:
+        # title is NOT NULL and the column is String(100); fall back to a
+        # placeholder if cleared, and truncate rather than reject an overflow so
+        # autosave never fails. The 10-100 rule is enforced at publish time.
+        post.title = ((data["title"] or "").strip() or "Untitled draft")[:100]
+    if "content" in data:
+        post.content = data["content"]
+    if "image_url" in data:
+        post.image_url = data["image_url"]
+    if "video_url" in data:
+        post.video_url = data["video_url"]
+    if "reference_url" in data:
+        post.reference_url = data["reference_url"]
+    if "category_id" in data:
+        post.category_id = data["category_id"]
+    if "tags" in data and data["tags"] is not None:
+        post.tags = await get_or_create_tags(data["tags"], db)
+
+    await db.commit()
+    await db.refresh(post)
+    return post
+
+
+@router.post("/{post_id}/publish", response_model=PostResponse)
+async def publish_draft(
+    post_id: uuid.UUID,
+    current_user: Annotated[models.User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    """Promote a draft to published. Applies strict validation here (not on autosave):
+    title 10-100 chars, content >= 65 chars, category required."""
+    res = await db.execute(
+        select(models.Post)
+        .options(
+            selectinload(models.Post.user),
+            selectinload(models.Post.category),
+            selectinload(models.Post.tags),
+        )
+        .where(models.Post.id == post_id)
+    )
+    post = res.scalars().first()
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Draft not found")
+    if not can_modify_post(current_user, post):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to publish this draft",
+        )
+
+    # Strict publish gate.
+    errors: list[str] = []
+    title = (post.title or "").strip()
+    if not (10 <= len(title) <= 100):
+        errors.append("Title must be between 10 and 100 characters")
+    if not post.content or len(post.content) < 65:
+        errors.append("Content must be at least 65 characters")
+    if post.category_id is None:
+        errors.append("A category is required to publish")
+    else:
+        cat_res = await db.execute(
+            select(models.Category).where(models.Category.id == post.category_id)
+        )
+        if not cat_res.scalars().first():
+            errors.append("Category not found")
+    if errors:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="; ".join(errors),
+        )
+
+    post.status = models.PostStatus.PUBLISHED
+    post.date_posted = datetime.now(UTC)
+    await db.commit()
+    await db.refresh(post)
+
+    res_post = await db.execute(
+        select(models.Post)
+        .options(
+            selectinload(models.Post.user),
+            selectinload(models.Post.category),
+            selectinload(models.Post.tags),
+        )
+        .where(models.Post.id == post.id)
+    )
+    published = res_post.scalars().first()
+    if published:
+        published.current_user_reaction = None
+    return published
+
+
 @router.get("/{post_id}", response_model=PostResponse)
 async def get_posts_by_id(
     post_id: uuid.UUID,
@@ -135,6 +309,12 @@ async def get_posts_by_id(
     )
     post = res.scalars().first()
     if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+
+    # Drafts are private: only the owner (or an admin) may read an unpublished post.
+    if post.status != models.PostStatus.PUBLISHED and not (
+        current_user and can_modify_post(current_user, post)
+    ):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
 
     if current_user:
@@ -179,6 +359,8 @@ async def create_post(
         reference_url=post.reference_url,
         category_id=post.category_id,
         tags=tag_objects,
+        # Legacy direct-create path publishes immediately (default is DRAFT).
+        status=models.PostStatus.PUBLISHED,
     )
     db.add(new_post)
     await db.commit()
@@ -317,7 +499,10 @@ async def get_posts_by_author(
             selectinload(models.Post.tags),
         )
         .join(models.User)
-        .where(models.User.username == author)
+        .where(
+            models.User.username == author,
+            models.Post.status == models.PostStatus.PUBLISHED,
+        )
     )
     author_posts = results.scalars().all()
     if not author_posts:
