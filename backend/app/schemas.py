@@ -28,6 +28,11 @@ class UserResponse(UserBase):
     hobbies: list[str] | None = None
 
 class UserProfileUpdate(BaseModel):
+    username: str | None = Field(
+        None,
+        pattern=r"^[a-zA-Z0-9_]{3,30}$",
+        description="3-30 chars, alphanumeric and underscores only",
+    )
     full_name: str | None = Field(None, min_length=2, max_length=100)
     profile_photo_url: str | None = Field(None, max_length=500)
     location: str | None = Field(None, max_length=100)
