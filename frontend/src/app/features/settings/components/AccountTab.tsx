@@ -4,6 +4,7 @@ import React from 'react';
 import { toast } from 'sonner';
 import { ChevronRight, Trash2, ShieldAlert, Camera } from 'lucide-react';
 import { ProfileListTile } from './ProfileListTile';
+import { Avatar, AvatarImage, AvatarFallback } from '../../../../components/ui/avatar';
 import type { AuthUser } from '../../auth/types';
 
 interface AccountTabProps {
@@ -51,19 +52,13 @@ export function AccountTab({ user }: AccountTabProps) {
               {fullName}
             </span>
             <div className="relative group">
-              {user?.profile_photo_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={user.profile_photo_url}
-                  alt={fullName}
-                  className="w-11 h-11 rounded-full object-cover border border-zinc-700 group-hover:border-red-500 transition-colors"
-                />
-              ) : (
-                <span className="w-11 h-11 rounded-full bg-red-600 border border-red-500 flex items-center justify-center font-bold text-sm text-white uppercase">
+              <Avatar className="w-11 h-11 border-zinc-700 group-hover:border-red-500 transition-colors">
+                <AvatarImage src={user?.profile_photo_url || undefined} alt={fullName} />
+                <AvatarFallback className="text-sm bg-red-600">
                   {fullName.charAt(0)}
-                </span>
-              )}
-              <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                </AvatarFallback>
+              </Avatar>
+              <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                 <Camera size={14} className="text-white" />
               </div>
             </div>

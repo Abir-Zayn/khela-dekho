@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Heart, MoreHorizontal, MessageSquare, ThumbsUp, Laugh } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '../../../../components/ui/avatar';
 import type { Post } from '../../sports-blog-home/types';
 import type { AuthUser } from '../../auth/types';
 
@@ -51,18 +52,12 @@ export function PublishedPostCard({ post, user, onMoreClick }: PublishedPostCard
       {/* 1. Header: user_photo | User_name | 'published_date */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          {authorPhoto ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={authorPhoto}
-              alt={authorName}
-              className="w-8 h-8 rounded-full object-cover border border-zinc-700 shrink-0"
-            />
-          ) : (
-            <span className="w-8 h-8 rounded-full bg-red-600 border border-red-500 flex items-center justify-center font-bold text-xs text-white uppercase shrink-0">
+          <Avatar className="w-8 h-8 shrink-0">
+            <AvatarImage src={authorPhoto || undefined} alt={authorName} />
+            <AvatarFallback className="text-[10px] bg-red-600">
               {authorName.charAt(0)}
-            </span>
-          )}
+            </AvatarFallback>
+          </Avatar>
           <div className="flex items-center gap-2 text-xs">
             <span className="font-bold text-white tracking-wide">{authorName}</span>
             <span className="text-zinc-600">•</span>
