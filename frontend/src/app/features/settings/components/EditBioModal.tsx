@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { AlignLeft, X, Check, Loader2 } from 'lucide-react';
+import { Textarea } from '../../../../components/ui/textarea';
 import { updateUserProfile } from '../actions/update_user_profile';
 import type { AuthUser } from '../../auth/types';
 
@@ -63,12 +64,11 @@ export function EditBioModal({
             <label className="block text-xs font-semibold text-zinc-400 mb-1.5">
               About You
             </label>
-            <textarea
+            <Textarea
               rows={4}
               value={newBio}
               onChange={(e) => setNewBio(e.target.value)}
               placeholder="Introduce yourself to the Khela Dekho sports community..."
-              className="w-full bg-zinc-950 text-white border border-zinc-800 focus:border-red-500 rounded-xl p-3 text-sm outline-none transition-colors leading-relaxed resize-none"
               maxLength={500}
               autoFocus
             />

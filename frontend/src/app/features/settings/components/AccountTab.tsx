@@ -31,8 +31,6 @@ export function AccountTab({ user: initialUser }: AccountTabProps) {
   const [isUsernameModalOpen, setIsUsernameModalOpen] = useState(false);
   const [isBioModalOpen, setIsBioModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-
-  // Loading States
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   const username = user?.username ? `@${user.username}` : '@anonymous';
