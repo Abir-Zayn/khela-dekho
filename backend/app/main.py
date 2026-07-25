@@ -11,21 +11,26 @@ from sqlalchemy.orm import selectinload
 
 from app import models
 from app.database import Base, engine, get_db
-from app.routers import posts, users, auth, categories, tags, livescores, cricket, baseball
+from app.routers import posts, users, auth, categories, tags, livescores, cricket, baseball, webhooks
 
+
+from sqlalchemy import select, text
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
     Application lifespan manager for starting and stopping the application asynchronously.
     """
-    # Startup: Create tables asynchronously
+    # Startup: Create tables & apply column migration asynchronously
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS clerk_id VARCHAR(255);"))
+        await conn.execute(text("ALTER TABLE users ALTER COLUMN hashed_password DROP NOT NULL;"))
+        await conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_users_clerk_id ON users (clerk_id);"))
     
     # Yield control to the application
     yield 
- 
+
     # Shutdown: Dispose engine connection pool
     await engine.dispose()
 
@@ -61,6 +66,7 @@ def validation_exception_handler(request: Request, exc: RequestValidationError):
 app.include_router(users.router)
 app.include_router(posts.router)
 app.include_router(auth.router)
+app.include_router(webhooks.router)
 app.include_router(categories.router)
 app.include_router(tags.router)
 app.include_router(livescores.router, prefix="/api/v1")

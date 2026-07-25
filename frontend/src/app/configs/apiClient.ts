@@ -1,12 +1,21 @@
 import { cookies } from 'next/headers';
+import { auth } from '@clerk/nextjs/server';
 import { API_BASE_URL } from './queryClient';
 
-// Written by the login/register actions, read by every server action across
-// every feature. Centralized here so there's one place that owns cookie names.
 export const AUTH_COOKIE_NAME = 'access_token';
 export const REFRESH_COOKIE_NAME = 'refresh_token';
 
 async function authHeader(): Promise<Record<string, string>> {
+  try {
+    const { getToken } = await auth();
+    const clerkToken = await getToken();
+    if (clerkToken) {
+      return { Authorization: `Bearer ${clerkToken}` };
+    }
+  } catch {
+    // Fall back to cookie store if called outside Clerk request context
+  }
+
   const store = await cookies();
   const token = store.get(AUTH_COOKIE_NAME)?.value;
   return token ? { Authorization: `Bearer ${token}` } : {};

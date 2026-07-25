@@ -1,9 +1,11 @@
 'use client';
 
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Search, RotateCcw, LayoutGrid, List, Trophy, User, Flame, SquarePen } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Search, RotateCcw, LayoutGrid, List, Trophy, User, Flame, SquarePen, LogOut, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
+import { useClerk } from '@clerk/nextjs';
+import { toast } from 'sonner';
 import { useSportsBlogStore } from '../utils/store';
 import { getCurrentUser } from '../../auth';
 
@@ -13,10 +15,39 @@ interface HeaderProps {
 }
 
 export function Header({ authors, categories = [] }: HeaderProps) {
+  const { signOut } = useClerk();
+  const queryClient = useQueryClient();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => getCurrentUser(),
   });
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      queryClient.setQueryData(['currentUser'], null);
+      await queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      toast.success('Logged out successfully');
+      setIsDropdownOpen(false);
+      window.location.reload();
+    } catch {
+      toast.error('Logout failed');
+    }
+  };
 
   const {
     searchQuery,
@@ -69,26 +100,48 @@ export function Header({ authors, categories = [] }: HeaderProps) {
             </Link>
 
             {user ? (
-              <div
-                className="flex items-center gap-2.5 text-zinc-400 group"
-              >
-                {user.profile_photo_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element -- presigned S3 URL, no fixed remote host to whitelist for next/image
-                  <img
-                    src={user.profile_photo_url}
-                    alt={user.username}
-                    width={32}
-                    height={32}
-                    className="w-8 h-8 rounded-full object-cover border border-zinc-700 group-hover:border-red-500 transition-colors"
-                  />
-                ) : (
-                  <span className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 group-hover:border-red-500 flex items-center justify-center font-bold text-xs text-white uppercase transition-colors">
-                    {(user.full_name || user.username).charAt(0)}
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setIsDropdownOpen((prev) => !prev)}
+                  className="flex items-center gap-2.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 hover:border-zinc-700 px-3 py-2 rounded-xl transition-all cursor-pointer select-none outline-none group"
+                >
+                  {user.profile_photo_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element -- presigned S3 URL, no fixed remote host to whitelist for next/image
+                    <img
+                      src={user.profile_photo_url}
+                      alt={user.username}
+                      width={32}
+                      height={32}
+                      className="w-7 h-7 rounded-full object-cover border border-zinc-700 group-hover:border-red-500 transition-colors"
+                    />
+                  ) : (
+                    <span className="w-7 h-7 rounded-full bg-red-600 border border-red-500 flex items-center justify-center font-bold text-xs text-white uppercase">
+                      {(user.full_name || user.username).charAt(0)}
+                    </span>
+                  )}
+                  <span className="font-semibold text-sm text-white leading-none">
+                    {user.full_name || user.username}
                   </span>
+                  <ChevronDown size={14} className={`text-zinc-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-52 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl py-1 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                    <div className="px-4 py-2.5 border-b border-zinc-800/80">
+                      <p className="text-xs font-semibold text-white truncate">{user.full_name || user.username}</p>
+                      <p className="text-[11px] text-zinc-400 truncate mt-0.5">{user.email}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="w-full text-left px-4 py-2.5 text-xs font-semibold text-red-400 hover:bg-red-950/40 hover:text-red-300 flex items-center gap-2 transition-colors cursor-pointer"
+                    >
+                      <LogOut size={14} />
+                      <span>Log Out</span>
+                    </button>
+                  </div>
                 )}
-                <span className="font-semibold text-white leading-none">
-                  {user.full_name || user.username}
-                </span>
               </div>
             ) : (
               <Link

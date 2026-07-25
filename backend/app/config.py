@@ -21,6 +21,11 @@ class Settings(BaseSettings):
     CRICKET_DATA_API_KEY: str = ""
     THESPORTSDB_API_KEY: str = "3"
 
+    # Clerk Authentication Configuration
+    CLERK_ISSUER_URL: str = ""
+    CLERK_SECRET_KEY: str = ""
+    CLERK_WEBHOOK_SECRET: str = ""
+
     class Config:
         env_file = ".env"
        

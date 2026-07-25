@@ -1,17 +1,21 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useMutation } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Flame, Mail, Lock, User, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
-import { loginUser } from '../actions/login_user';
-import { registerUser } from '../actions/register_user';
+import { useAuth, useClerk } from '@clerk/nextjs';
+import { useSignIn, useSignUp } from '@clerk/nextjs/legacy';
 
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  const { isSignedIn } = useAuth();
+  const { signOut } = useClerk();
+  const { isLoaded: isSignInLoaded, signIn, setActive: setSignInActive } = useSignIn();
+  const { isLoaded: isSignUpLoaded, signUp, setActive: setSignUpActive } = useSignUp();
   
   // Toggle between 'login' and 'register'
   const [mode, setMode] = useState<'login' | 'register'>('login');
@@ -20,6 +24,7 @@ export function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Sync mode with URL search param on load (if present)
   useEffect(() => {
@@ -29,56 +34,112 @@ export function LoginForm() {
     }
   }, [searchParams]);
 
-  // Login Mutation
-  const loginMutation = useMutation({
-    mutationFn: loginUser,
-    onSuccess: (result) => {
-      if (result.ok) {
-        toast.success('Successfully logged in!', {
-          description: 'Welcome back to Khela Dekho.',
-        });
-        const redirectUrl = searchParams.get('redirect') || '/';
-        router.push(redirectUrl);
-        router.refresh();
-      } else {
-        toast.error('Authentication Failed', {
-          description: result.error || 'Incorrect email or password.',
-        });
-      }
-    },
-  });
+  // If user is already signed in, redirect to home
+  useEffect(() => {
+    if (isSignedIn) {
+      const redirectUrl = searchParams.get('redirect') || '/';
+      router.push(redirectUrl);
+    }
+  }, [isSignedIn, router, searchParams]);
 
-  // Register Mutation
-  const registerMutation = useMutation({
-    mutationFn: registerUser,
-    onSuccess: (result) => {
-      if (result.ok) {
-        toast.success('Account created successfully!', {
-          description: 'Welcome to Khela Dekho.',
-        });
-        const redirectUrl = searchParams.get('redirect') || '/';
-        router.push(redirectUrl);
-        router.refresh();
-      } else {
-        setFormError(result.error);
-        toast.error('Registration Failed', {
-          description: result.error || 'Could not create account.',
-        });
+  const handleSocialSignIn = async (strategy: 'oauth_google' | 'oauth_facebook') => {
+    if (isSignedIn) {
+      await signOut();
+    }
+    if (!isSignInLoaded || !signIn) {
+      toast.info('Clerk Loading...', { description: 'Please wait a moment while auth initializes.' });
+      return;
+    }
+    try {
+      await signIn.authenticateWithRedirect({
+        strategy,
+        redirectUrl: '/sso-callback',
+        redirectUrlComplete: searchParams.get('redirect') || '/',
+      });
+    } catch (err: any) {
+      const msg = err?.errors?.[0]?.message || 'Could not initiate social login.';
+      if (msg.toLowerCase().includes('already exist') || msg.toLowerCase().includes('already signed in')) {
+        router.push(searchParams.get('redirect') || '/');
+        return;
       }
-    },
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormError(null);
-    if (mode === 'login') {
-      loginMutation.mutate({ email, password });
-    } else {
-      registerMutation.mutate({ username, email, password });
+      toast.error('Social Login Error', { description: msg });
     }
   };
 
-  const isPending = loginMutation.isPending || registerMutation.isPending;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError(null);
+    setIsSubmitting(true);
+
+    if (mode === 'login') {
+      if (!isSignInLoaded || !signIn) {
+        setIsSubmitting(false);
+        setFormError('Authentication service is initializing. Please try again in a moment.');
+        return;
+      }
+      try {
+        const result = await signIn.create({
+          identifier: email,
+          password: password,
+        });
+
+        if (result.status === 'complete') {
+          await setSignInActive({ session: result.createdSessionId });
+          toast.success('Successfully logged in!', {
+            description: 'Welcome back to Khela Dekho.',
+          });
+          const redirectUrl = searchParams.get('redirect') || '/';
+          router.push(redirectUrl);
+          router.refresh();
+        } else {
+          setFormError('Additional verification required.');
+        }
+      } catch (err: any) {
+        const msg = err?.errors?.[0]?.longMessage || err?.errors?.[0]?.message || 'Incorrect email or password.';
+        setFormError(msg);
+        toast.error('Authentication Failed', { description: msg });
+      } finally {
+        setIsSubmitting(false);
+      }
+    } else {
+      if (!isSignUpLoaded || !signUp) {
+        setIsSubmitting(false);
+        setFormError('Registration service is initializing. Please try again in a moment.');
+        return;
+      }
+      try {
+        const result = await signUp.create({
+          emailAddress: email,
+          password: password,
+          username: username,
+        });
+
+        if (result.status === 'complete') {
+          await setSignUpActive({ session: result.createdSessionId });
+          toast.success('Account created successfully!', {
+            description: 'Welcome to Khela Dekho.',
+          });
+          const redirectUrl = searchParams.get('redirect') || '/';
+          router.push(redirectUrl);
+          router.refresh();
+        } else if (result.unverifiedFields?.includes('email_address')) {
+          toast.info('Verification Email Sent', {
+            description: 'Please check your email to verify your account.',
+          });
+        } else {
+          toast.success('Sign up initiated!', {
+            description: 'Please complete remaining registration steps.',
+          });
+        }
+      } catch (err: any) {
+        const msg = err?.errors?.[0]?.longMessage || err?.errors?.[0]?.message || 'Could not create account.';
+        setFormError(msg);
+        toast.error('Registration Failed', { description: msg });
+      } finally {
+        setIsSubmitting(false);
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen w-full bg-zinc-950 text-zinc-100 font-sans grid grid-cols-1 lg:grid-cols-2">
@@ -133,6 +194,7 @@ export function LoginForm() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            <div id="clerk-captcha" />
             {mode === 'register' && (
               <div className="space-y-2">
                 <label
@@ -198,7 +260,7 @@ export function LoginForm() {
                     onClick={(e) => {
                       e.preventDefault();
                       toast.info("Password Reset", {
-                        description: "Password reset functionality is currently disabled."
+                        description: "Use Clerk's account recovery or click forgot password."
                       });
                     }}
                   >
@@ -232,14 +294,63 @@ export function LoginForm() {
 
             <button
               type="submit"
-              disabled={isPending}
+              disabled={isSubmitting}
               className="w-full bg-red-600 hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3.5 px-6 rounded-xl transition-all shadow-lg shadow-red-950/40 cursor-pointer active:scale-[0.99] select-none text-sm uppercase tracking-wider font-semibold"
             >
               {mode === 'login' 
-                ? (isPending ? 'Signing in...' : 'Sign In') 
-                : (isPending ? 'Creating account...' : 'Create Account')}
+                ? (isSubmitting ? 'Signing in...' : 'Sign In') 
+                : (isSubmitting ? 'Creating account...' : 'Create Account')}
             </button>
           </form>
+
+          {/* Social OAuth Buttons */}
+          <div className="space-y-4 pt-2">
+            <div className="relative flex items-center justify-center">
+              <div className="border-t border-zinc-800 w-full" />
+              <span className="bg-zinc-950 px-3 text-xs text-zinc-500 uppercase tracking-widest absolute">
+                or continue with
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => handleSocialSignIn('oauth_google')}
+                className="flex items-center justify-center gap-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-200 py-3 px-4 rounded-xl text-xs font-semibold transition-all cursor-pointer hover:border-zinc-700"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                  <path
+                    fill="currentColor"
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  />
+                  <path
+                    fill="currentColor"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  />
+                  <path
+                    fill="currentColor"
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                  />
+                  <path
+                    fill="currentColor"
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                  />
+                </svg>
+                Google
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSocialSignIn('oauth_facebook')}
+                className="flex items-center justify-center gap-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-200 py-3 px-4 rounded-xl text-xs font-semibold transition-all cursor-pointer hover:border-zinc-700"
+              >
+                <svg className="w-4 h-4 fill-current text-blue-500" viewBox="0 0 24 24">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                </svg>
+                Facebook
+              </button>
+            </div>
+          </div>
 
           <div className="text-center text-sm text-zinc-500">
             {mode === 'login' ? (

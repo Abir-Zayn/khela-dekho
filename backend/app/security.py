@@ -50,17 +50,36 @@ def create_refresh_token(user_id:uuid.UUID)->str:
         "refresh",
     )
 
-def decode_token(token:str)-> dict:
+def decode_token(token: str) -> dict:
+    """
+    Decodes a JWT token. First attempts to decode as a Clerk token via JWKS if configured/detected,
+    otherwise falls back to standard local HMAC secret decoding.
+    """
     try:
-        return jwt.decode(token,settings.SECRET_KEY,algorithms=[settings.ALGORITHM])
+        unverified_header = jwt.get_unverified_header(token)
+        if "kid" in unverified_header and settings.CLERK_ISSUER_URL:
+            jwks_url = f"{settings.CLERK_ISSUER_URL.rstrip('/')}/.well-known/jwks.json"
+            jwks_client = jwt.PyJWKClient(jwks_url)
+            signing_key = jwks_client.get_signing_key_from_jwt(token)
+            return jwt.decode(
+                token,
+                signing_key.key,
+                algorithms=["RS256", "ES256", "RS512"],
+                options={"verify_aud": False},
+            )
+    except Exception:
+        pass
+
+    try:
+        return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     except jwt.InvalidTokenError:
         raise jwt.InvalidTokenError
 
 
 async def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)],
-    db:Annotated[AsyncSession, Depends(get_db)]) -> models.User:
-
+    db: Annotated[AsyncSession, Depends(get_db)]
+) -> models.User:
     credentials_error = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -69,19 +88,52 @@ async def get_current_user(
 
     try:
         payload = decode_token(token)
-        if payload.get("type") != "access":     # refuse refresh tokens here
-            raise credentials_error
         sub = payload.get("sub")
-        if sub is None:
+        if not sub:
             raise credentials_error
-        user_id = uuid.UUID(sub)
-    except (InvalidTokenError, ValueError, KeyError):
+    except Exception:
         raise credentials_error
 
-    result = await db.execute(select(models.User).where(models.User.id == user_id))
-    user = result.scalars().first()
+    user: models.User | None = None
+
+    # 1. Try finding by clerk_id
+    if sub.startswith("user_"):
+        res = await db.execute(select(models.User).where(models.User.clerk_id == sub))
+        user = res.scalars().first()
+
+        # Auto-provision user if not found yet (for first request after Clerk login)
+        if user is None:
+            email = payload.get("email") or payload.get("primary_email_address") or f"{sub}@clerk.user"
+            username = payload.get("username") or payload.get("first_name") or f"user_{sub[-6:]}"
+            
+            # Ensure unique username
+            existing_un = await db.execute(select(models.User).where(models.User.username == username))
+            if existing_un.scalars().first():
+                username = f"{username}_{uuid.uuid4().hex[:4]}"
+
+            user = models.User(
+                clerk_id=sub,
+                username=username,
+                email=email,
+                full_name=payload.get("name") or payload.get("full_name"),
+                profile_photo_url=payload.get("image_url") or payload.get("picture"),
+            )
+            db.add(user)
+            await db.commit()
+            await db.refresh(user)
+
+    # 2. Otherwise try finding by standard UUID
+    else:
+        try:
+            user_id = uuid.UUID(sub)
+            res = await db.execute(select(models.User).where(models.User.id == user_id))
+            user = res.scalars().first()
+        except ValueError:
+            raise credentials_error
+
     if user is None:
         raise credentials_error
+
     return user
 
 
@@ -89,24 +141,12 @@ async def get_current_user_optional(
     token: Annotated[str | None, Depends(oauth2_scheme_optional)] = None,
     db: Annotated[AsyncSession | None, Depends(get_db)] = None,
 ) -> models.User | None:
-    if not token:
-        return None
-    if db is None:
+    if not token or db is None:
         return None
     try:
-        payload = decode_token(token)
-        if payload.get("type") != "access":     # refuse refresh tokens here
-            return None
-        sub = payload.get("sub")
-        if sub is None:
-            return None
-        user_id = uuid.UUID(sub)
+        return await get_current_user(token, db)
     except Exception:
         return None
-
-    result = await db.execute(select(models.User).where(models.User.id == user_id))
-    user = result.scalars().first()
-    return user
 
 def can_modify_post(user:models.User,post: models.Post) -> bool:
      """Post owners and admins (authorities) may edit or delete a post."""

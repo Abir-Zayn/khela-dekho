@@ -31,9 +31,10 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid7)
+    clerk_id: Mapped[str | None] = mapped_column(String(255), unique=True, index=True, nullable=True)
     username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     email: Mapped[str] = mapped_column(String(100), nullable=False)
-    hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    hashed_password: Mapped[str | None] = mapped_column(String(255), nullable=True)
     role: Mapped[UserRole] = mapped_column(
         # pyrefly: ignore [no-matching-overload]
         Enum(UserRole, name="user_role", values_callable=lambda e: [m.value for m in e]),
