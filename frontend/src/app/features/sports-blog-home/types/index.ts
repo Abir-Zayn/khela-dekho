@@ -59,6 +59,33 @@ export interface FootballTeam {
   crest: string;
 }
 
+export interface StandingTeamItem {
+  position: number;
+  team: {
+    id: number;
+    name: string;
+    shortName: string;
+    tla?: string;
+    crest: string;
+  };
+  playedGames: number;
+  won: number;
+  draw: number;
+  lost: number;
+  points: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDifference: number;
+  form?: string;
+}
+
+export interface TeamQuickViewModalProps {
+  standingItem: StandingTeamItem | null;
+  leagueName?: string;
+  onClose: () => void;
+}
+
+
 export interface FootballMatch {
   id: number;
   competition: { id: number; name: string; code: string; emblem: string };

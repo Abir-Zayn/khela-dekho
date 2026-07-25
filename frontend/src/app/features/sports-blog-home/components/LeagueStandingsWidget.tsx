@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Trophy, RefreshCw, ChevronDown } from 'lucide-react';
+import { TeamQuickViewModal, StandingTeamItem } from './TeamQuickViewModal';
 
 interface StandingItem {
   position: number;
@@ -10,6 +11,7 @@ interface StandingItem {
     id: number;
     name: string;
     shortName: string;
+    tla?: string;
     crest: string;
   };
   playedGames: number;
@@ -52,6 +54,7 @@ const LEAGUES = [
 
 export const LeagueStandingsWidget: React.FC = () => {
   const [selectedLeague, setSelectedLeague] = useState<string>('PL');
+  const [selectedTeam, setSelectedTeam] = useState<StandingTeamItem | null>(null);
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['leagueStandings', selectedLeague],
@@ -60,6 +63,7 @@ export const LeagueStandingsWidget: React.FC = () => {
   });
 
   const table = data?.standings?.[0]?.table || [];
+  const currentLeagueName = LEAGUES.find((l) => l.code === selectedLeague)?.name;
 
   return (
     <div className="w-full bg-zinc-900/90 border border-zinc-800/80 rounded-2xl p-4 shadow-xl backdrop-blur-md">
@@ -121,7 +125,9 @@ export const LeagueStandingsWidget: React.FC = () => {
               {table.slice(0, 10).map((row) => (
                 <tr
                   key={row.team.id}
-                  className="hover:bg-zinc-800/30 transition-colors group text-zinc-300"
+                  onClick={() => setSelectedTeam(row)}
+                  title={`Click to view ${row.team.name} details`}
+                  className="hover:bg-zinc-800/60 transition-all group text-zinc-300 cursor-pointer active:scale-[0.99]"
                 >
                   {/* Position */}
                   <td className="py-2 px-1 text-center font-bold text-zinc-400 text-[11px]">
@@ -148,10 +154,10 @@ export const LeagueStandingsWidget: React.FC = () => {
                         <img
                           src={row.team.crest}
                           alt={row.team.shortName}
-                          className="w-4 h-4 object-contain"
+                          className="w-4 h-4 object-contain group-hover:scale-110 transition-transform"
                         />
                       )}
-                      <span className="font-semibold text-zinc-200 group-hover:text-white truncate max-w-[120px]">
+                      <span className="font-semibold text-zinc-200 group-hover:text-amber-400 transition-colors truncate max-w-[120px]">
                         {row.team.shortName || row.team.name}
                       </span>
                     </div>
@@ -177,6 +183,14 @@ export const LeagueStandingsWidget: React.FC = () => {
           </table>
         </div>
       )}
+
+      {/* Team Details Quick View Modal */}
+      <TeamQuickViewModal
+        standingItem={selectedTeam}
+        leagueName={currentLeagueName}
+        onClose={() => setSelectedTeam(null)}
+      />
     </div>
   );
 };
+
