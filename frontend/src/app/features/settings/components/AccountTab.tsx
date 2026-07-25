@@ -27,11 +27,17 @@ export function AccountTab({ user: initialUser }: AccountTabProps) {
     setUser(initialUser);
   }, [initialUser]);
 
-  // Modal States
-  const [isUsernameModalOpen, setIsUsernameModalOpen] = useState(false);
-  const [isBioModalOpen, setIsBioModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  // Composite UI State
+  const [accountState, setAccountState] = useState({
+    isUsernameModalOpen: false,
+    isBioModalOpen: false,
+    isDeleteModalOpen: false,
+    isUploadingPhoto: false,
+  });
+
+  const setModalState = (key: keyof typeof accountState, value: boolean) => {
+    setAccountState((prev) => ({ ...prev, [key]: value }));
+  };
 
   const username = user?.username ? `@${user.username}` : '@anonymous';
   const fullName = user?.full_name || user?.username || 'Sports Fan';
@@ -58,7 +64,7 @@ export function AccountTab({ user: initialUser }: AccountTabProps) {
       return;
     }
 
-    setIsUploadingPhoto(true);
+    setModalState('isUploadingPhoto', true);
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -71,7 +77,7 @@ export function AccountTab({ user: initialUser }: AccountTabProps) {
       const msg = err instanceof Error ? err.message : 'Photo upload failed';
       toast.error('Upload Error', { description: msg });
     } finally {
-      setIsUploadingPhoto(false);
+      setModalState('isUploadingPhoto', false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
@@ -91,7 +97,7 @@ export function AccountTab({ user: initialUser }: AccountTabProps) {
       <ProfileListTile
         title="Username"
         description="Edit your @username"
-        onClick={() => setIsUsernameModalOpen(true)}
+        onClick={() => setModalState('isUsernameModalOpen', true)}
         value={
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold text-zinc-300 bg-zinc-900 border border-zinc-800 px-3.5 py-1.5 rounded-xl font-mono">
@@ -122,7 +128,7 @@ export function AccountTab({ user: initialUser }: AccountTabProps) {
                 </AvatarFallback>
               </Avatar>
               <div className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                {isUploadingPhoto ? (
+                {accountState.isUploadingPhoto ? (
                   <Loader2 size={16} className="text-white animate-spin" />
                 ) : (
                   <Camera size={16} className="text-white" />
@@ -140,7 +146,7 @@ export function AccountTab({ user: initialUser }: AccountTabProps) {
       <ProfileListTile
         title="Bio"
         description="Edit your bio"
-        onClick={() => setIsBioModalOpen(true)}
+        onClick={() => setModalState('isBioModalOpen', true)}
         value={
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold text-red-500 hover:text-red-400">
@@ -181,7 +187,7 @@ export function AccountTab({ user: initialUser }: AccountTabProps) {
         title="Delete Account"
         description="Permanently delete your account"
         isDanger
-        onClick={() => setIsDeleteModalOpen(true)}
+        onClick={() => setModalState('isDeleteModalOpen', true)}
         value={
           <button
             type="button"
@@ -195,22 +201,22 @@ export function AccountTab({ user: initialUser }: AccountTabProps) {
 
       {/* Modular Modals */}
       <EditUsernameModal
-        isOpen={isUsernameModalOpen}
+        isOpen={accountState.isUsernameModalOpen}
         initialUsername={user?.username || ''}
-        onClose={() => setIsUsernameModalOpen(false)}
+        onClose={() => setModalState('isUsernameModalOpen', false)}
         onSuccess={applyUserUpdate}
       />
 
       <EditBioModal
-        isOpen={isBioModalOpen}
+        isOpen={accountState.isBioModalOpen}
         initialBio={user?.bio || ''}
-        onClose={() => setIsBioModalOpen(false)}
+        onClose={() => setModalState('isBioModalOpen', false)}
         onSuccess={applyUserUpdate}
       />
 
       <DeleteAccountModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
+        isOpen={accountState.isDeleteModalOpen}
+        onClose={() => setModalState('isDeleteModalOpen', false)}
       />
     </div>
   );

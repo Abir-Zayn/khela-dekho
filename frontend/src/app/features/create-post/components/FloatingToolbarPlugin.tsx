@@ -42,11 +42,13 @@ export function FloatingToolbarPlugin() {
   const [editor] = useLexicalComposerContext();
   const toolbarRef = useRef<HTMLDivElement>(null);
 
-  const [isBold, setIsBold] = useState(false);
-  const [isItalic, setIsItalic] = useState(false);
-  const [isUnderline, setIsUnderline] = useState(false);
-  const [isStrikethrough, setIsStrikethrough] = useState(false);
-  const [isCode, setIsCode] = useState(false);
+  const [textFormat, setTextFormat] = useState({
+    isBold: false,
+    isItalic: false,
+    isUnderline: false,
+    isStrikethrough: false,
+    isCode: false,
+  });
   const [blockType, setBlockType] = useState<string>('paragraph');
   const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
 
@@ -61,11 +63,13 @@ export function FloatingToolbarPlugin() {
       !nativeSelection.isCollapsed &&
       editor.getRootElement()?.contains(nativeSelection.anchorNode)
     ) {
-      setIsBold(selection.hasFormat('bold'));
-      setIsItalic(selection.hasFormat('italic'));
-      setIsUnderline(selection.hasFormat('underline'));
-      setIsStrikethrough(selection.hasFormat('strikethrough'));
-      setIsCode(selection.hasFormat('code'));
+      setTextFormat({
+        isBold: selection.hasFormat('bold'),
+        isItalic: selection.hasFormat('italic'),
+        isUnderline: selection.hasFormat('underline'),
+        isStrikethrough: selection.hasFormat('strikethrough'),
+        isCode: selection.hasFormat('code'),
+      });
 
       const anchorNode = selection.anchor.getNode();
       const element =
@@ -225,7 +229,7 @@ export function FloatingToolbarPlugin() {
           editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold');
         }}
         className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-          isBold ? 'bg-zinc-800 text-amber-400' : 'text-zinc-400 hover:text-white'
+          textFormat.isBold ? 'bg-zinc-800 text-amber-400' : 'text-zinc-400 hover:text-white'
         }`}
         title="Bold"
       >
@@ -239,7 +243,7 @@ export function FloatingToolbarPlugin() {
           editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic');
         }}
         className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-          isItalic ? 'bg-zinc-800 text-amber-400' : 'text-zinc-400 hover:text-white'
+          textFormat.isItalic ? 'bg-zinc-800 text-amber-400' : 'text-zinc-400 hover:text-white'
         }`}
         title="Italic"
       >
@@ -253,7 +257,7 @@ export function FloatingToolbarPlugin() {
           editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'underline');
         }}
         className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-          isUnderline ? 'bg-zinc-800 text-amber-400' : 'text-zinc-400 hover:text-white'
+          textFormat.isUnderline ? 'bg-zinc-800 text-amber-400' : 'text-zinc-400 hover:text-white'
         }`}
         title="Underline"
       >
@@ -267,7 +271,7 @@ export function FloatingToolbarPlugin() {
           editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'strikethrough');
         }}
         className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-          isStrikethrough ? 'bg-zinc-800 text-amber-400' : 'text-zinc-400 hover:text-white'
+          textFormat.isStrikethrough ? 'bg-zinc-800 text-amber-400' : 'text-zinc-400 hover:text-white'
         }`}
         title="Strikethrough"
       >
@@ -281,7 +285,7 @@ export function FloatingToolbarPlugin() {
           editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'code');
         }}
         className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-          isCode ? 'bg-zinc-800 text-amber-400' : 'text-zinc-400 hover:text-white'
+          textFormat.isCode ? 'bg-zinc-800 text-amber-400' : 'text-zinc-400 hover:text-white'
         }`}
         title="Code"
       >
