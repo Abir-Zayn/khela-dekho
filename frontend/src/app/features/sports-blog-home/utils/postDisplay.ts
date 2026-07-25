@@ -1,10 +1,10 @@
 const TAG_COLORS: Record<string, string> = {
-  Tactical: 'bg-red-500/10 text-red-500 border-red-500/20',
-  Analysis: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
-  Opinion: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
-  Interview: 'bg-green-500/10 text-green-500 border-green-500/20',
-  'Behind the Scenes': 'bg-purple-500/10 text-purple-500 border-purple-500/20',
-  Highlights: 'bg-pink-500/10 text-pink-500 border-pink-500/20',
+  Tactical: 'bg-terracotta-primary/10 text-terracotta-primary border-terracotta-primary/20',
+  Analysis: 'bg-sage-deep/10 text-sage-deep border-sage-deep/20',
+  Opinion: 'bg-terracotta-light/10 text-terracotta-dark border-terracotta-light/20',
+  Interview: 'bg-mint-bright/10 text-sage-deep border-mint-bright/20',
+  'Behind the Scenes': 'bg-terracotta-primary/10 text-terracotta-dark border-terracotta-primary/20',
+  Highlights: 'bg-terracotta-dark/10 text-terracotta-dark border-terracotta-dark/20',
 };
 
 const GRADIENTS = [
@@ -25,7 +25,7 @@ function hashToIndex(id: string, mod: number): number {
   return hash % mod;
 }
 
-export const getTagColor = (tag: string) => TAG_COLORS[tag] || 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20';
+export const getTagColor = (tag: string) => TAG_COLORS[tag] || 'bg-muted text-muted-foreground border-border';
 
 export const getPostGradient = (id: string) => GRADIENTS[hashToIndex(id, GRADIENTS.length)];
 

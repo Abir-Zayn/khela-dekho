@@ -16,18 +16,18 @@ export function SkeletonGrid({ layoutMode }: SkeletonGridProps) {
         {skeletons.map((_, i) => (
           <div 
             key={i} 
-            className="flex flex-col md:flex-row bg-zinc-900 border border-zinc-800 rounded-[12px] overflow-hidden h-fit md:h-44 animate-pulse"
+            className="flex flex-col md:flex-row bg-card border border-border rounded-[12px] overflow-hidden h-fit md:h-44 animate-pulse"
           >
-            <div className="w-full md:w-56 bg-zinc-850 p-6 flex flex-col justify-between border-b md:border-b-0 md:border-r border-zinc-800" />
+            <div className="w-full md:w-56 bg-muted/60 p-6 flex flex-col justify-between border-b md:border-b-0 md:border-r border-border" />
             <div className="flex-1 p-6 flex flex-col justify-between space-y-4">
               <div className="space-y-2">
-                <div className="h-4 bg-zinc-800 rounded w-1/4" />
-                <div className="h-6 bg-zinc-800 rounded w-3/4" />
-                <div className="h-4 bg-zinc-800 rounded w-5/6" />
+                <div className="h-4 bg-muted rounded w-1/4" />
+                <div className="h-6 bg-muted rounded w-3/4" />
+                <div className="h-4 bg-muted rounded w-5/6" />
               </div>
               <div className="flex items-center justify-between">
-                <div className="h-3 bg-zinc-805 rounded w-12" />
-                <div className="h-3 bg-zinc-805 rounded w-24" />
+                <div className="h-3 bg-muted/80 rounded w-12" />
+                <div className="h-3 bg-muted/80 rounded w-24" />
               </div>
             </div>
           </div>
@@ -41,17 +41,17 @@ export function SkeletonGrid({ layoutMode }: SkeletonGridProps) {
       {skeletons.map((_, i) => (
         <div 
           key={i} 
-          className="flex flex-col bg-zinc-900 border border-zinc-800 rounded-[12px] overflow-hidden h-[360px] animate-pulse"
+          className="flex flex-col bg-card border border-border rounded-[12px] overflow-hidden h-[360px] animate-pulse"
         >
-          <div className="h-44 bg-zinc-850 p-5" />
+          <div className="h-44 bg-muted/60 p-5" />
           <div className="p-4 flex-1 flex flex-col justify-between space-y-4">
             <div className="space-y-2">
-              <div className="h-3 bg-zinc-800 rounded w-1/3" />
-              <div className="h-5 bg-zinc-800 rounded w-3/4" />
-              <div className="h-3 bg-zinc-800 rounded w-5/6" />
-              <div className="h-3 bg-zinc-800 rounded w-2/3" />
+              <div className="h-3 bg-muted rounded w-1/3" />
+              <div className="h-5 bg-muted rounded w-3/4" />
+              <div className="h-3 bg-muted rounded w-5/6" />
+              <div className="h-3 bg-muted rounded w-2/3" />
             </div>
-            <div className="h-8 bg-zinc-850 rounded w-full mt-4" />
+            <div className="h-8 bg-muted/60 rounded w-full mt-4" />
           </div>
         </div>
       ))}

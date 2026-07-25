@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { RotateCcw, AlertTriangle, Trophy, SquarePen } from 'lucide-react';
+import React, { useMemo, useState, useEffect } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { RotateCcw, AlertTriangle, Trophy, SquarePen, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { Header } from './components/Header';
 import { PostCard } from './components/PostCard';
@@ -10,23 +10,12 @@ import { SkeletonGrid } from './components/SkeletonGrid';
 import { LiveScoreTicker } from './components/LiveScoreTicker';
 import { LeagueStandingsWidget } from './components/LeagueStandingsWidget';
 import { useSportsBlogStore } from './utils/store';
-import { stripHtml } from './utils/postDisplay';
 import { listAllPosts } from './actions/list_all_post';
 import { Post } from './types';
 
-export default function SportsBlogHome() {
-  // Fetch posts via the list_all_post server action
-  const {
-    data: posts = [],
-    isLoading,
-    isError,
-    error,
-    refetch
-  } = useQuery<Post[]>({
-    queryKey: ['posts'],
-    queryFn: () => listAllPosts(),
-  });
+const PAGE_SIZE = 20;
 
+export default function SportsBlogHome() {
   // Zustand State
   const {
     searchQuery,
@@ -35,6 +24,40 @@ export default function SportsBlogHome() {
     layoutMode,
     resetFilters
   } = useSportsBlogStore();
+
+  // Debounce the search box so full-text search runs server-side without a
+  // request per keystroke.
+  const [debouncedQuery, setDebouncedQuery] = useState(searchQuery.trim());
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(searchQuery.trim()), 300);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  // Fetch posts page-by-page so the initial feed load stays small and fast.
+  // `debouncedQuery` drives the backend `?q=` full-text search (rank-ordered).
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ['posts', debouncedQuery],
+    queryFn: ({ pageParam }) =>
+      listAllPosts({ q: debouncedQuery || undefined, limit: PAGE_SIZE, offset: pageParam }),
+    initialPageParam: 0,
+    // A short page means the server has no more rows.
+    getNextPageParam: (lastPage: Post[], allPages: Post[][]) =>
+      lastPage.length < PAGE_SIZE ? undefined : allPages.length * PAGE_SIZE,
+  });
+
+  const posts = useMemo<Post[]>(() => data?.pages.flat() ?? [], [data]);
+
+  const hasActiveQuery =
+    debouncedQuery !== '' || selectedAuthor !== '' || selectedCategory !== '';
 
   // Extract unique lists of authors and categories for filter dropdowns
   const uniqueAuthors = useMemo(() => {
@@ -47,21 +70,14 @@ export default function SportsBlogHome() {
     return Array.from(new Set(categories));
   }, [posts]);
 
-  // Filter posts client-side based on search query, author, and category
+  // Search runs server-side (?q=); only author/category are filtered client-side.
   const filteredPosts = useMemo(() => {
     return posts.filter(post => {
-      const plainContent = stripHtml(post.content);
-      const matchesSearch =
-        searchQuery === '' ||
-        post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        plainContent.toLowerCase().includes(searchQuery.toLowerCase());
-
       const matchesAuthor = selectedAuthor === '' || post.author === selectedAuthor;
       const matchesCategory = selectedCategory === '' || post.category?.name === selectedCategory;
-
-      return matchesSearch && matchesAuthor && matchesCategory;
+      return matchesAuthor && matchesCategory;
     });
-  }, [posts, searchQuery, selectedAuthor, selectedCategory]);
+  }, [posts, selectedAuthor, selectedCategory]);
 
   const allCards = filteredPosts;
 
@@ -114,7 +130,7 @@ export default function SportsBlogHome() {
               <SkeletonGrid layoutMode={layoutMode} />
             ) : filteredPosts.length === 0 ? (
               /* Empty State */
-              posts.length === 0 ? (
+              !hasActiveQuery ? (
                 <div className="py-20 text-center border border-dashed border-border rounded-3xl bg-card">
                   <Trophy size={40} className="text-muted-foreground mx-auto mb-4" />
                   <h3 className="text-xl font-bold text-foreground mb-1">No Posts Yet</h3>
@@ -163,6 +179,27 @@ export default function SportsBlogHome() {
                     />
                   ))}
                 </div>
+
+                {/* Load more — server paginates (incl. ?q= search); hide only when a
+                    client-side author/category filter is narrowing the current page. */}
+                {hasNextPage && selectedAuthor === '' && selectedCategory === '' && (
+                  <div className="flex justify-center pt-2">
+                    <button
+                      onClick={() => fetchNextPage()}
+                      disabled={isFetchingNextPage}
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-muted hover:bg-muted/80 text-foreground rounded-xl text-sm font-bold transition-all cursor-pointer border border-border disabled:opacity-60 disabled:cursor-not-allowed"
+                    >
+                      {isFetchingNextPage ? (
+                        <>
+                          <Loader2 size={16} className="animate-spin" />
+                          <span>Loading…</span>
+                        </>
+                      ) : (
+                        <span>Load More Articles</span>
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>

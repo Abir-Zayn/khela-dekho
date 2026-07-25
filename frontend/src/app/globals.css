@@ -74,9 +74,9 @@ body {
 
 /* Day (Light) Theme Palette */
 :root {
-  --background: #FFFFFF;
+  --background: #F8F9FA;
   --foreground: #0C0C0C;
-  --card: #F9F9F9;
+  --card: #FFFFFF;
   --card-foreground: #0C0C0C;
   --popover: #FFFFFF;
   --popover-foreground: #0C0C0C;
@@ -84,13 +84,13 @@ body {
   --primary-foreground: #FFFFFF;
   --secondary: #3B7455;
   --secondary-foreground: #FFFFFF;
-  --muted: #F3F4F6;
-  --muted-foreground: #4B5563;
+  --muted: #F1F5F9;
+  --muted-foreground: #475569;
   --accent: #E59F71;
   --accent-foreground: #0C0C0C;
   --destructive: #BA5A31;
-  --border: #E5E7EB;
-  --input: #E5E7EB;
+  --border: #E2E8F0;
+  --input: #E2E8F0;
   --ring: #D07D51;
   --radius: 0.625rem;
 }
@@ -107,7 +107,7 @@ body {
   --primary-foreground: #FFFFFF;
   --secondary: #3B7455;
   --secondary-foreground: #FFFFFF;
-  --muted: #1A1A1A;
+  --muted: #1E1E1E;
   --muted-foreground: #9CA3AF;
   --accent: #BA5A31;
   --accent-foreground: #FFFFFF;

@@ -31,23 +31,26 @@ export function PostCard({
   const categoryName = post.category?.name || 'General';
   const categoryColor = getTagColor(categoryName);
   const gradient = getPostGradient(post.id);
-  const readTime = getReadTime(post.content);
+  // Prefer server-provided card fields (feed responses); fall back to deriving from
+  // full content when this post came from a single-post fetch.
+  const readTime = post.read_minutes ?? getReadTime(post.content ?? '');
+  const excerpt = post.excerpt ?? getExcerpt(post.content ?? '', 90);
   const tags = post.tags || [];
 
   return (
     <Link href={`/posts/${post.id}`} className="block h-full w-full">
       <Card
         onClick={onClick}
-        className={`group flex flex-col justify-between ${cardWidth} ${cardHeight} ${borderRadius} overflow-hidden cursor-pointer mx-auto ${className}`}
+        className={`flex flex-col justify-between ${cardWidth} ${cardHeight} ${borderRadius} border-none shadow-none overflow-hidden cursor-pointer mx-auto ${className}`}
       >
       {/* 1. Top Image Container (Reusable imageHeight & resizable radius top) */}
-      <div className={`relative w-full ${imageHeight} overflow-hidden bg-gradient-to-br ${gradient} border-b border-zinc-800/60 shrink-0`}>
+      <div className={`relative w-full ${imageHeight} overflow-hidden bg-gradient-to-br ${gradient} shrink-0`}>
         {post.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={post.image_url}
             alt={post.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover"
           />
         ) : (
           <div className="w-full h-full p-4 flex flex-col justify-between bg-gradient-to-br from-red-600/20 via-zinc-900 to-zinc-950">
@@ -59,18 +62,18 @@ export function PostCard({
 
         {/* Top Badges Overlay (Category & Likes) */}
         <div className="absolute top-3 left-3 right-3 flex items-center justify-between pointer-events-none z-10">
-          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border backdrop-blur-md bg-black/60 ${categoryColor}`}>
+          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border backdrop-blur-md bg-card/80 text-card-foreground ${categoryColor}`}>
             {categoryName}
           </span>
-          <span className="flex items-center gap-1 text-[11px] font-bold text-white/90 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/10">
-            <Heart size={11} className="text-red-500" />
+          <span className="flex items-center gap-1 text-[11px] font-bold text-card-foreground bg-card/80 backdrop-blur-md px-2 py-0.5 rounded-md border border-border">
+            <Heart size={11} className="text-terracotta-primary fill-terracotta-primary/20" />
             {post.reaction_counts?.like || 0}
           </span>
         </div>
       </div>
 
-      {/* 2. Below Image Content */}
-      <div className="p-4 flex-1 flex flex-col justify-between overflow-hidden">
+      {/* 2. Below Image Content (Body container for title, 2-line excerpt, tags, category, and date) */}
+      <div className="p-4 flex-1 flex flex-col justify-between overflow-hidden bg-card text-card-foreground">
         <div>
           {/* Category */}
           <div className="text-[11px] font-bold uppercase tracking-wider text-terracotta-primary mb-1">
@@ -78,7 +81,7 @@ export function PostCard({
           </div>
 
           {/* Title of the blog post */}
-          <CardTitle className="text-sm sm:text-base group-hover:text-terracotta-primary transition-colors line-clamp-2 leading-snug mb-1">
+          <CardTitle className="text-sm sm:text-base font-bold text-foreground line-clamp-2 leading-snug mb-1">
             {post.title}
           </CardTitle>
 
@@ -89,7 +92,7 @@ export function PostCard({
 
           {/* Excerpt */}
           <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-            {getExcerpt(post.content, 90)}
+            {excerpt}
           </p>
         </div>
 
@@ -117,7 +120,7 @@ export function PostCard({
           {/* Footer Metadata */}
           <CardFooter className="p-0 flex items-center justify-between text-[11px] text-muted-foreground">
             <span>{formatDate(post.date_posted)}</span>
-            <span className="flex items-center gap-1 text-xs font-bold text-terracotta-primary group-hover:translate-x-1 transition-transform">
+            <span className="flex items-center gap-1 text-xs font-bold text-terracotta-primary">
               READ ARTICLE <ArrowRight size={11} />
             </span>
           </CardFooter>

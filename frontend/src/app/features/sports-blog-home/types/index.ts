@@ -22,7 +22,11 @@ export interface Post {
   category_id: string;
   author: string;
   title: string;
+  // Full body — present on single-post fetches. Absent from feed/list responses,
+  // which ship `excerpt` + `read_minutes` instead to keep the payload small.
   content: string;
+  excerpt?: string;
+  read_minutes?: number;
   image_url: string | null;
   video_url: string | null;
   reference_url: string | null;

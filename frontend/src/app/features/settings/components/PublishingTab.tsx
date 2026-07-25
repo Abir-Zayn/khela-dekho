@@ -17,7 +17,9 @@ interface PublishingTabProps {
 export function PublishingTab({ user }: PublishingTabProps) {
   const { data: posts, isLoading } = useQuery({
     queryKey: ['allPosts'],
-    queryFn: () => listAllPosts(),
+    // Pull a large page: this tab filters the feed down to the user's own posts
+    // client-side, so it must see more than the default first page.
+    queryFn: () => listAllPosts({ limit: 100 }),
   });
 
   // Filter posts created by the logged in user, or fall back to sample posts if empty

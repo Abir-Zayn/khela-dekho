@@ -45,7 +45,8 @@ export function PublishedPostCard({ post, user, onMoreClick }: PublishedPostCard
     (post.reaction_counts?.laugh || 0) ||
     post.likes || 0;
 
-  const plainContent = stripHtml(post.content || '');
+  // Feed responses carry `excerpt` (already plain) instead of the full body.
+  const plainContent = stripHtml(post.excerpt ?? post.content ?? '');
 
   return (
     <div className="bg-zinc-900/60 border border-zinc-800/90 rounded-2xl p-5 hover:border-zinc-700/80 transition-all duration-200 shadow-lg space-y-4">

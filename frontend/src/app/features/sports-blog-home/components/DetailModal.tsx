@@ -47,14 +47,14 @@ export function DetailModal({ post, onClose }: DetailModalProps) {
       />
 
       {/* Modal Content Box */}
-      <div className="relative w-full max-w-3xl bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-2xl shadow-black/80 flex flex-col max-h-[85vh] animate-scale-up">
+      <div className="relative w-full max-w-3xl bg-card border border-border rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh] animate-scale-up text-card-foreground">
 
         {/* Top Header Card Background */}
-        <div className={`p-6 sm:p-8 bg-gradient-to-br ${gradient} border-b border-zinc-800 relative`}>
+        <div className={`p-6 sm:p-8 bg-gradient-to-br ${gradient} border-b border-border relative`}>
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 sm:top-6 sm:right-6 text-zinc-400 hover:text-white bg-zinc-950/50 hover:bg-zinc-800 p-2 rounded-full border border-zinc-800 transition-all cursor-pointer"
+            className="absolute top-4 right-4 sm:top-6 sm:right-6 text-muted-foreground hover:text-foreground bg-background/60 hover:bg-muted p-2 rounded-full border border-border transition-all cursor-pointer"
             title="Close modal"
           >
             <X size={20} />
@@ -68,7 +68,7 @@ export function DetailModal({ post, onClose }: DetailModalProps) {
             {post.tags.map((t) => (
               <span
                 key={t.id}
-                className="text-xs text-zinc-400 font-bold bg-zinc-950/60 px-2 py-0.5 rounded border border-zinc-800"
+                className="text-xs text-muted-foreground font-bold bg-muted px-2 py-0.5 rounded border border-border"
               >
                 #{t.name}
               </span>
@@ -76,29 +76,29 @@ export function DetailModal({ post, onClose }: DetailModalProps) {
           </div>
 
           {/* Title */}
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight tracking-tight pr-8">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground leading-tight tracking-tight pr-8">
             {post.title}
           </h2>
 
           {/* Author Details and Date */}
-          <div className="mt-6 flex flex-wrap items-center gap-4 sm:gap-6 text-sm text-zinc-300">
+          <div className="mt-6 flex flex-wrap items-center gap-4 sm:gap-6 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
-              <span className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center font-bold text-xs border border-zinc-800 text-white uppercase">
+              <span className="w-8 h-8 rounded-full bg-terracotta-primary flex items-center justify-center font-bold text-xs border border-border text-white uppercase">
                 {post.author.charAt(0)}
               </span>
-              <span className="font-semibold text-white">{post.author}</span>
+              <span className="font-semibold text-foreground">{post.author}</span>
             </div>
 
-            <div className="h-4 w-px bg-zinc-800 hidden sm:block" />
+            <div className="h-4 w-px bg-border hidden sm:block" />
 
-            <div className="flex items-center gap-1.5 text-zinc-400">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
               <Calendar size={15} />
               <span>{formatDate(post.date_posted)}</span>
             </div>
 
-            <div className="h-4 w-px bg-zinc-800 hidden sm:block" />
+            <div className="h-4 w-px bg-border hidden sm:block" />
 
-            <div className="flex items-center gap-1.5 text-zinc-400">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
               <Clock size={15} />
               <span>{readTime} min read</span>
             </div>
@@ -106,7 +106,7 @@ export function DetailModal({ post, onClose }: DetailModalProps) {
         </div>
 
         {/* Modal Scrollable Body */}
-        <div className="p-6 sm:p-8 overflow-y-auto flex-1 text-zinc-300 space-y-6 leading-relaxed">
+        <div className="p-6 sm:p-8 overflow-y-auto flex-1 text-foreground space-y-6 leading-relaxed">
           {/* Article Content Body Container */}
           <div className="space-y-6">
             {/* Cover Image if present */}
@@ -124,11 +124,11 @@ export function DetailModal({ post, onClose }: DetailModalProps) {
             {/* Main Rich Text Content Body */}
             {post.content.trim().startsWith('<') ? (
               <div
-                className="text-base sm:text-lg leading-relaxed text-zinc-200 prose prose-invert max-w-none [&_img]:rounded-2xl [&_iframe]:rounded-2xl [&_iframe]:w-full [&_iframe]:aspect-video [&_blockquote]:border-l-4 [&_blockquote]:border-amber-500 [&_blockquote]:bg-zinc-950/60 [&_blockquote]:p-4 [&_blockquote]:rounded-r-xl"
+                className="text-base sm:text-lg leading-relaxed text-foreground prose dark:prose-invert max-w-none [&_img]:rounded-2xl [&_iframe]:rounded-2xl [&_iframe]:w-full [&_iframe]:aspect-video [&_blockquote]:border-l-4 [&_blockquote]:border-terracotta-primary [&_blockquote]:bg-muted/60 [&_blockquote]:p-4 [&_blockquote]:rounded-r-xl"
                 dangerouslySetInnerHTML={{ __html: post.content }}
               />
             ) : (
-              <p className="text-base sm:text-lg leading-relaxed whitespace-pre-line text-zinc-200">
+              <p className="text-base sm:text-lg leading-relaxed whitespace-pre-line text-foreground">
                 {post.content}
               </p>
             )}
@@ -136,16 +136,16 @@ export function DetailModal({ post, onClose }: DetailModalProps) {
 
           {/* Reference Source Link if present */}
           {post.reference_url && (
-            <div className="p-4 bg-zinc-950/80 border border-zinc-800 rounded-2xl flex items-center justify-between gap-4 mt-6">
+            <div className="p-4 bg-muted/60 border border-border rounded-2xl flex items-center justify-between gap-4 mt-6">
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-amber-400 block">
+                <span className="text-xs font-bold uppercase tracking-wider text-terracotta-primary block">
                   Post Source Reference
                 </span>
                 <a
                   href={post.reference_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm font-medium text-zinc-200 hover:text-white underline truncate max-w-md block"
+                  className="text-sm font-medium text-foreground hover:underline truncate max-w-md block"
                 >
                   {post.reference_url}
                 </a>
@@ -154,20 +154,20 @@ export function DetailModal({ post, onClose }: DetailModalProps) {
                 href={post.reference_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-3.5 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xl text-xs font-bold transition-colors shrink-0"
+                className="px-3.5 py-1.5 bg-terracotta-primary/10 hover:bg-terracotta-primary/20 text-terracotta-primary border border-terracotta-primary/30 rounded-xl text-xs font-bold transition-colors shrink-0"
               >
                 Visit Source →
               </a>
             </div>
           )}
 
-          <p className="text-sm text-zinc-400 border-t border-zinc-800/60 pt-6">
+          <p className="text-sm text-muted-foreground border-t border-border pt-6">
             Disclaimer: Opinions expressed in this sports column represent those of the writer and are intended to inspire dialogue within the Khela Dekho community. We encourage readers to join the discussion.
           </p>
         </div>
 
         {/* Modal Footer Interactive Bar */}
-        <div className="bg-zinc-950 px-6 py-4 border-t border-zinc-800 flex items-center justify-between text-zinc-400 text-sm">
+        <div className="bg-card px-6 py-4 border-t border-border flex items-center justify-between text-muted-foreground text-sm">
           {/* Reaction Counts (read-only until reactions are wired to auth) */}
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5">
