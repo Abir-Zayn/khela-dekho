@@ -44,16 +44,16 @@ export function EditBioModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-150">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 w-full max-w-lg space-y-5 shadow-2xl">
-        <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-          <h3 className="text-lg font-bold text-white flex items-center gap-2">
-            <AlignLeft size={18} className="text-red-500" />
+      <div className="bg-card border border-border rounded-3xl p-6 w-full max-w-lg space-y-5 shadow-2xl text-card-foreground">
+        <div className="flex items-center justify-between border-b border-border pb-3">
+          <h3 className="text-lg font-bold text-card-foreground flex items-center gap-2">
+            <AlignLeft size={18} className="text-terracotta-primary" />
             <span>Edit Bio</span>
           </h3>
           <button
             type="button"
             onClick={onClose}
-            className="text-zinc-400 hover:text-white p-1 rounded-lg cursor-pointer"
+            className="text-muted-foreground hover:text-foreground p-1 rounded-lg cursor-pointer transition-colors"
           >
             <X size={18} />
           </button>
@@ -61,7 +61,7 @@ export function EditBioModal({
 
         <form onSubmit={handleSaveBio} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-zinc-400 mb-1.5">
+            <label className="block text-xs font-semibold text-muted-foreground mb-1.5">
               About You
             </label>
             <Textarea
@@ -72,7 +72,7 @@ export function EditBioModal({
               maxLength={500}
               autoFocus
             />
-            <div className="flex justify-end mt-1 text-[11px] text-zinc-500">
+            <div className="flex justify-end mt-1 text-[11px] text-muted-foreground">
               {newBio.length}/500
             </div>
           </div>
@@ -81,14 +81,14 @@ export function EditBioModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              className="px-4 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSaving}
-              className="flex items-center gap-2 bg-red-600 hover:bg-red-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all disabled:opacity-50 cursor-pointer"
+              className="flex items-center gap-2 bg-terracotta-primary hover:bg-terracotta-dark text-white text-xs font-bold px-4 py-2 rounded-xl transition-all disabled:opacity-50 cursor-pointer"
             >
               {isSaving ? (
                 <>

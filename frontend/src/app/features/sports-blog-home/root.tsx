@@ -93,7 +93,7 @@ export default function SportsBlogHome() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans flex flex-col selection:bg-red-600 selection:text-white">
+    <div className="min-h-screen bg-background text-foreground font-sans flex flex-col transition-colors duration-200 selection:bg-terracotta-primary selection:text-white">
 
       {/* Navigation Header */}
       <Header authors={uniqueAuthors} categories={uniqueCategories} />
@@ -115,30 +115,30 @@ export default function SportsBlogHome() {
             ) : filteredPosts.length === 0 ? (
               /* Empty State */
               posts.length === 0 ? (
-                <div className="py-20 text-center border border-dashed border-zinc-800 rounded-3xl bg-zinc-900/10">
-                  <Trophy size={40} className="text-zinc-600 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-zinc-400 mb-1">No Posts Yet</h3>
-                  <p className="text-sm text-zinc-500 max-w-xs mx-auto mb-6">
+                <div className="py-20 text-center border border-dashed border-border rounded-3xl bg-card">
+                  <Trophy size={40} className="text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-foreground mb-1">No Posts Yet</h3>
+                  <p className="text-sm text-muted-foreground max-w-xs mx-auto mb-6">
                     Be the first to write a sports article and publish it to the community!
                   </p>
                   <Link
                     href="/create-post"
-                    className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold transition-all cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-terracotta-primary hover:bg-terracotta-dark text-white rounded-xl text-sm font-bold transition-all cursor-pointer"
                   >
                     <SquarePen size={16} />
                     <span>Write First Post</span>
                   </Link>
                 </div>
               ) : (
-                <div className="py-20 text-center border border-dashed border-zinc-800 rounded-3xl bg-zinc-900/10">
-                  <Trophy size={40} className="text-zinc-600 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-zinc-400 mb-1">No Matches Found</h3>
-                  <p className="text-sm text-zinc-500 max-w-xs mx-auto mb-6">
+                <div className="py-20 text-center border border-dashed border-border rounded-3xl bg-card">
+                  <Trophy size={40} className="text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-foreground mb-1">No Matches Found</h3>
+                  <p className="text-sm text-muted-foreground max-w-xs mx-auto mb-6">
                     We couldn&apos;t find any sports analysis matching your filter parameters.
                   </p>
                   <button
                     onClick={resetFilters}
-                    className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl text-sm font-medium transition-all cursor-pointer border border-zinc-700"
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-muted hover:bg-muted/80 text-foreground rounded-xl text-sm font-medium transition-all cursor-pointer border border-border"
                   >
                     <RotateCcw size={14} />
                     <span>Clear Search Filters</span>
@@ -176,10 +176,10 @@ export default function SportsBlogHome() {
       </main>
 
       {/* Footer */}
-      <footer className="w-full bg-zinc-950 border-t border-zinc-900 py-10 mt-20 text-center text-zinc-600 text-xs">
+      <footer className="w-full bg-card border-t border-border py-10 mt-20 text-center text-muted-foreground text-xs transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 space-y-4">
-          <div className="flex items-center justify-center gap-2 font-bold tracking-wider text-zinc-400 uppercase italic">
-            <Trophy size={14} className="text-red-500" />
+          <div className="flex items-center justify-center gap-2 font-bold tracking-wider text-foreground uppercase italic">
+            <Trophy size={14} className="text-terracotta-primary" />
             <span>Khela Dekho Sports Arena</span>
           </div>
           <p>© {new Date().getFullYear()} Khela Dekho Blog. All Rights Reserved. Dev Stack: FastAPI + Next.js 16 + Zustand + React Query.</p>

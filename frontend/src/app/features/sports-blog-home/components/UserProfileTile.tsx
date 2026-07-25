@@ -75,42 +75,42 @@ export function UserProfileTile({ user }: UserProfileTileProps) {
       <button
         type="button"
         onClick={() => setIsDropdownOpen((prev) => !prev)}
-        className="flex items-center gap-2.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 hover:border-zinc-700 px-3 py-2 rounded-xl transition-all cursor-pointer select-none outline-none group"
+        className="flex items-center gap-2.5 bg-card hover:bg-muted text-card-foreground border border-border px-3 py-2 rounded-xl transition-all cursor-pointer select-none outline-none group"
       >
-        <Avatar key={user?.profile_photo_url || 'trigger-photo'} className="w-7 h-7 border-zinc-700 group-hover:border-red-500 transition-colors">
+        <Avatar key={user?.profile_photo_url || 'trigger-photo'} className="w-7 h-7 border-border group-hover:border-terracotta-primary transition-colors">
           <AvatarImage src={user.profile_photo_url || undefined} alt={displayName} />
-          <AvatarFallback className="text-[10px] bg-red-600">
+          <AvatarFallback className="text-[10px] bg-terracotta-primary text-white">
             {displayName.charAt(0)}
           </AvatarFallback>
         </Avatar>
-        <span className="font-semibold text-sm text-white leading-none">
+        <span className="font-semibold text-sm text-foreground leading-none">
           {displayName}
         </span>
         <ChevronDown
           size={14}
-          className={`text-zinc-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}
+          className={`text-muted-foreground transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}
         />
       </button>
 
       {/* Dropdown Menu */}
       {isDropdownOpen && (
-        <div className="absolute right-0 mt-2 w-60 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl p-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150 space-y-2">
+        <div className="absolute right-0 mt-2 w-60 bg-card border border-border rounded-2xl shadow-2xl p-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150 space-y-2 text-card-foreground">
           {/* Profile Header & View Profile Link */}
-          <div className="flex items-center gap-3 p-2 bg-zinc-950/70 rounded-xl border border-zinc-800/80">
+          <div className="flex items-center gap-3 p-2 bg-muted/60 rounded-xl border border-border">
             <Avatar key={user?.profile_photo_url || 'dropdown-photo'} className="w-9 h-9 shrink-0">
               <AvatarImage src={user.profile_photo_url || undefined} alt={displayName} />
-              <AvatarFallback className="text-sm bg-red-600">
+              <AvatarFallback className="text-sm bg-terracotta-primary text-white">
                 {displayName.charAt(0)}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-extrabold text-white truncate leading-tight">
+              <p className="text-xs font-extrabold text-foreground truncate leading-tight">
                 {displayName}
               </p>
               <Link
                 href="/settings"
                 onClick={() => setIsDropdownOpen(false)}
-                className="text-[11px] font-semibold text-red-500 hover:text-red-400 transition-colors inline-block mt-0.5"
+                className="text-[11px] font-semibold text-terracotta-primary hover:underline transition-colors inline-block mt-0.5"
               >
                 View Profile &rarr;
               </Link>
@@ -118,13 +118,13 @@ export function UserProfileTile({ user }: UserProfileTileProps) {
           </div>
 
           {/* Navigation Menu Options */}
-          <div className="space-y-0.5 border-t border-b border-zinc-800/80 py-1.5">
+          <div className="space-y-0.5 border-t border-b border-border py-1.5">
             <Link
               href="/settings"
               onClick={() => setIsDropdownOpen(false)}
-              className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-zinc-300 hover:text-white hover:bg-zinc-800/60 rounded-lg transition-colors cursor-pointer"
+              className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors cursor-pointer"
             >
-              <Settings size={15} className="text-zinc-400" />
+              <Settings size={15} className="text-muted-foreground" />
               <span>Settings</span>
             </Link>
 
@@ -134,9 +134,9 @@ export function UserProfileTile({ user }: UserProfileTileProps) {
                 setIsDropdownOpen(false);
                 toast.info('Help & Support', { description: 'Need assistance? Contact support@kheladekho.com' });
               }}
-              className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-zinc-300 hover:text-white hover:bg-zinc-800/60 rounded-lg transition-colors cursor-pointer text-left"
+              className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors cursor-pointer text-left"
             >
-              <HelpCircle size={15} className="text-zinc-400" />
+              <HelpCircle size={15} className="text-muted-foreground" />
               <span>Help</span>
             </button>
           </div>
@@ -146,12 +146,12 @@ export function UserProfileTile({ user }: UserProfileTileProps) {
             <button
               type="button"
               onClick={handleLogout}
-              className="text-xs font-bold text-red-500 hover:text-red-400 transition-colors cursor-pointer bg-transparent border-none p-0"
+              className="text-xs font-bold text-terracotta-primary hover:underline transition-colors cursor-pointer bg-transparent border-none p-0"
             >
               Sign out
             </button>
 
-            <span className="text-[10px] font-mono text-zinc-500 bg-zinc-950 px-2 py-0.5 rounded border border-zinc-800/60 select-none">
+            <span className="text-[10px] font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded border border-border select-none">
               {maskEmail(user.email)}
             </span>
           </div>

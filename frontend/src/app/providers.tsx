@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ClerkProvider } from '@clerk/nextjs';
+import { ThemeProvider } from 'next-themes';
 import { queryClient } from './configs/queryClient';
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -12,8 +13,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider>
       <QueryClientProvider client={client}>
-        {children}
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+        </ThemeProvider>
       </QueryClientProvider>
     </ClerkProvider>
   );
 }
+
+

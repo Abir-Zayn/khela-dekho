@@ -73,22 +73,22 @@ export function PostCard({
       <div className="p-4 flex-1 flex flex-col justify-between overflow-hidden">
         <div>
           {/* Category */}
-          <div className="text-[11px] font-bold uppercase tracking-wider text-red-500 mb-1">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-terracotta-primary mb-1">
             {categoryName}
           </div>
 
           {/* Title of the blog post */}
-          <CardTitle className="text-sm sm:text-base group-hover:text-red-500 transition-colors line-clamp-2 leading-snug mb-1">
+          <CardTitle className="text-sm sm:text-base group-hover:text-terracotta-primary transition-colors line-clamp-2 leading-snug mb-1">
             {post.title}
           </CardTitle>
 
           {/* Published by Author name */}
-          <p className="text-xs text-zinc-400 font-medium mb-2">
-            Published by <span className="text-zinc-200 font-semibold">{post.author}</span>
+          <p className="text-xs text-muted-foreground font-medium mb-2">
+            Published by <span className="text-foreground font-semibold">{post.author}</span>
           </p>
 
           {/* Excerpt */}
-          <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">
+          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
             {getExcerpt(post.content, 90)}
           </p>
         </div>
@@ -96,28 +96,28 @@ export function PostCard({
         <div>
           {/* Tags list */}
           {tags.length > 0 ? (
-            <div className="flex flex-wrap items-center gap-1 my-2 pt-2 border-t border-zinc-800/40">
-              <TagIcon size={10} className="text-zinc-500 mr-0.5" />
+            <div className="flex flex-wrap items-center gap-1 my-2 pt-2 border-t border-border">
+              <TagIcon size={10} className="text-muted-foreground mr-0.5" />
               {tags.slice(0, 3).map((t) => (
                 <span
                   key={t.id || t.name}
-                  className="text-[10px] text-zinc-400 bg-zinc-950 px-2 py-0.5 rounded border border-zinc-800 truncate max-w-[100px]"
+                  className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded border border-border truncate max-w-[100px]"
                 >
                   #{t.name}
                 </span>
               ))}
               {tags.length > 3 && (
-                <span className="text-[10px] text-zinc-500">+{tags.length - 3}</span>
+                <span className="text-[10px] text-muted-foreground">+{tags.length - 3}</span>
               )}
             </div>
           ) : (
-            <div className="my-2 pt-2 border-t border-zinc-800/40" />
+            <div className="my-2 pt-2 border-t border-border" />
           )}
 
           {/* Footer Metadata */}
-          <CardFooter className="p-0 flex items-center justify-between text-[11px] text-zinc-500">
+          <CardFooter className="p-0 flex items-center justify-between text-[11px] text-muted-foreground">
             <span>{formatDate(post.date_posted)}</span>
-            <span className="flex items-center gap-1 text-xs font-bold text-red-500 group-hover:translate-x-1 transition-transform">
+            <span className="flex items-center gap-1 text-xs font-bold text-terracotta-primary group-hover:translate-x-1 transition-transform">
               READ ARTICLE <ArrowRight size={11} />
             </span>
           </CardFooter>

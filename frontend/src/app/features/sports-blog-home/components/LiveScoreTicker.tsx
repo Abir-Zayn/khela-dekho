@@ -107,27 +107,27 @@ export const LiveScoreTicker: React.FC = () => {
   });
 
   return (
-    <div className="w-full bg-zinc-900/90 border border-zinc-800/80 rounded-2xl p-4 shadow-xl backdrop-blur-md">
+    <div className="w-full bg-card border border-border rounded-2xl p-4 shadow-xl text-card-foreground transition-colors duration-200">
       {/* Header & Sport Tabs */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-3 pb-3 border-b border-zinc-800/60">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-3 pb-3 border-b border-border">
         
         {/* Left: Sport Selector */}
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-red-600/20 text-red-500 border border-red-500/30">
+          <div className="p-1.5 rounded-lg bg-terracotta-primary/20 text-terracotta-primary border border-terracotta-primary/30">
             <Activity size={18} />
           </div>
-          <div className="flex items-center gap-1.5 bg-zinc-950 p-1 rounded-xl border border-zinc-800">
+          <div className="flex items-center gap-1.5 bg-background p-1 rounded-xl border border-border">
             <button
               onClick={() => { setActiveSport('cricket'); setSelectedLeague('ALL'); }}
               className={`px-3 py-1 rounded-lg text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1.5 ${
                 activeSport === 'cricket'
-                  ? 'bg-red-600 text-white shadow-md shadow-red-950/60'
-                  : 'text-zinc-400 hover:text-zinc-200'
+                  ? 'bg-terracotta-primary text-white shadow-md'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               <span>🏏 Cricket</span>
               {liveCrCount > 0 && (
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-mint-bright animate-pulse" />
               )}
             </button>
 
@@ -135,13 +135,13 @@ export const LiveScoreTicker: React.FC = () => {
               onClick={() => { setActiveSport('football'); setSelectedLeague('ALL'); }}
               className={`px-3 py-1 rounded-lg text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1.5 ${
                 activeSport === 'football'
-                  ? 'bg-red-600 text-white shadow-md shadow-red-950/60'
-                  : 'text-zinc-400 hover:text-zinc-200'
+                  ? 'bg-terracotta-primary text-white shadow-md'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               <span>⚽ Football</span>
               {liveFbCount > 0 && (
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-mint-bright animate-pulse" />
               )}
             </button>
 
@@ -149,13 +149,13 @@ export const LiveScoreTicker: React.FC = () => {
               onClick={() => { setActiveSport('baseball'); setSelectedLeague('ALL'); }}
               className={`px-3 py-1 rounded-lg text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1.5 ${
                 activeSport === 'baseball'
-                  ? 'bg-red-600 text-white shadow-md shadow-red-950/60'
-                  : 'text-zinc-400 hover:text-zinc-200'
+                  ? 'bg-terracotta-primary text-white shadow-md'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               <span>⚾ Baseball</span>
               {liveBbCount > 0 && (
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-mint-bright animate-pulse" />
               )}
             </button>
           </div>

@@ -63,14 +63,14 @@ export function DialogContent({
       {/* Modal Container */}
       <div
         className={cn(
-          "relative w-full max-w-lg rounded-2xl border border-zinc-800 bg-zinc-950 p-6 text-zinc-100 shadow-2xl shadow-black/80 animate-scale-up z-10 overflow-hidden",
+          "relative w-full max-w-lg rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-2xl animate-scale-up z-10 overflow-hidden",
           className
         )}
         {...props}
       >
         <button
           onClick={() => onOpenChange(false)}
-          className="absolute right-4 top-4 rounded-full p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800/80 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-zinc-700"
+          className="absolute right-4 top-4 rounded-full p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring"
           title="Close dialog"
         >
           <X className="size-4" />
@@ -102,7 +102,7 @@ export function DialogFooter({
   return (
     <div
       className={cn(
-        "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 pt-4 border-t border-zinc-800/80 mt-6",
+        "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 pt-4 border-t border-border mt-6",
         className
       )}
       {...props}
@@ -117,7 +117,7 @@ export function DialogTitle({
   return (
     <h2
       className={cn(
-        "text-lg font-extrabold leading-none tracking-tight text-white",
+        "text-lg font-extrabold leading-none tracking-tight text-card-foreground",
         className
       )}
       {...props}
@@ -131,7 +131,7 @@ export function DialogDescription({
 }: React.HTMLAttributes<HTMLParagraphElement>) {
   return (
     <p
-      className={cn("text-xs text-zinc-400 leading-relaxed", className)}
+      className={cn("text-xs text-muted-foreground leading-relaxed", className)}
       {...props}
     />
   );

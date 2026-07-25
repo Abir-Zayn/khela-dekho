@@ -34,7 +34,7 @@ export function Header({ authors, categories = [] }: HeaderProps) {
   const hasActiveFilters = searchQuery !== '' || selectedAuthor !== '' || selectedCategory !== '';
 
   return (
-    <header className="w-full bg-zinc-950 text-white border-b border-zinc-800">
+    <header className="w-full bg-card text-card-foreground border-b border-border transition-colors duration-200">
       {/* Top Banner: Sports Ticker Highlight */}
       <div className="bg-amber-500 text-black py-1.5 px-4 text-center font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2">
         <Trophy size={14} className="animate-bounce" />
@@ -46,26 +46,26 @@ export function Header({ authors, categories = [] }: HeaderProps) {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           {/* Logo Brand Area */}
           <div className="flex items-center gap-3">
-            <div className="bg-red-600 p-2.5 rounded-xl shadow-lg shadow-red-950/50 flex items-center justify-center rotate-[-3deg] hover:rotate-0 transition-transform duration-300">
+            <div className="bg-terracotta-primary p-2.5 rounded-xl shadow-lg flex items-center justify-center rotate-[-3deg] hover:rotate-0 transition-transform duration-300">
               <Flame size={28} className="text-white animate-pulse" />
             </div>
             <div>
-              <h1 className="text-3xl font-extrabold tracking-tighter uppercase italic leading-none">
-                KHELA <span className="text-red-500">DEKHO</span>
+              <h1 className="text-3xl font-extrabold tracking-tighter uppercase italic leading-none text-foreground">
+                KHELA <span className="text-terracotta-primary">DEKHO</span>
               </h1>
-              <p className="text-xs text-zinc-400 font-semibold tracking-widest uppercase mt-0.5">
+              <p className="text-xs text-muted-foreground font-semibold tracking-widest uppercase mt-0.5">
                 The Ultimate Sports Arena
               </p>
             </div>
           </div>
 
           {/* Account Info */}
-          <div className="hidden lg:flex items-center border-l border-zinc-800 pl-6 text-sm text-zinc-400 gap-4">
+          <div className="hidden lg:flex items-center border-l border-border pl-6 text-sm text-muted-foreground gap-4">
             <Link
               href="/create-post"
-              className="flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-800 hover:border-zinc-700 px-4 py-2 rounded-xl text-sm font-semibold transition-colors cursor-pointer"
+              className="flex items-center gap-2 bg-background hover:bg-muted text-foreground border border-border px-4 py-2 rounded-xl text-sm font-semibold transition-colors cursor-pointer"
             >
-              <SquarePen size={16} className="text-red-500" />
+              <SquarePen size={16} className="text-terracotta-primary" />
               <span>Write</span>
             </Link>
 
@@ -74,11 +74,11 @@ export function Header({ authors, categories = [] }: HeaderProps) {
         </div>
 
         {/* Filter Controls Area */}
-        <div className="mt-8 bg-zinc-900/60 backdrop-blur border border-zinc-800/80 rounded-2xl p-4 md:p-5 flex flex-col md:flex-row items-center gap-4 justify-between">
+        <div className="mt-8 bg-background border border-border rounded-2xl p-4 md:p-5 flex flex-col md:flex-row items-center gap-4 justify-between transition-colors duration-200">
 
           {/* Search Box */}
           <div className="relative w-full md:max-w-md">
-            <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500">
+            <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
               <Search size={18} />
             </span>
             <input
@@ -86,7 +86,7 @@ export function Header({ authors, categories = [] }: HeaderProps) {
               placeholder="Search posts by title or content..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-zinc-950/80 text-white placeholder-zinc-500 border border-zinc-800 focus:border-red-500 focus:ring-1 focus:ring-red-500 rounded-xl py-2.5 pl-10 pr-4 text-sm transition-all outline-none"
+              className="w-full bg-card text-card-foreground placeholder:text-muted-foreground border border-border focus:border-terracotta-primary focus:ring-1 focus:ring-terracotta-primary rounded-xl py-2.5 pl-10 pr-4 text-sm transition-all outline-none"
             />
           </div>
 
@@ -98,16 +98,16 @@ export function Header({ authors, categories = [] }: HeaderProps) {
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full bg-zinc-950/80 text-white border border-zinc-800 focus:border-red-500 rounded-xl py-2.5 px-4 text-sm outline-none transition-all appearance-none cursor-pointer"
+                  className="w-full bg-card text-card-foreground border border-border focus:border-terracotta-primary rounded-xl py-2.5 px-4 text-sm outline-none transition-all appearance-none cursor-pointer"
                 >
-                  <option value="">All Categories</option>
+                  <option value="" className="bg-card text-card-foreground">All Categories</option>
                   {categories.map((cat) => (
-                    <option key={cat} value={cat}>
+                    <option key={cat} value={cat} className="bg-card text-card-foreground">
                       {cat}
                     </option>
                   ))}
                 </select>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-zinc-500 text-xs">
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-muted-foreground text-xs">
                   ▼
                 </div>
               </div>
@@ -118,16 +118,16 @@ export function Header({ authors, categories = [] }: HeaderProps) {
               <select
                 value={selectedAuthor}
                 onChange={(e) => setSelectedAuthor(e.target.value)}
-                className="w-full bg-zinc-950/80 text-white border border-zinc-800 focus:border-red-500 rounded-xl py-2.5 px-4 text-sm outline-none transition-all appearance-none cursor-pointer"
+                className="w-full bg-card text-card-foreground border border-border focus:border-terracotta-primary rounded-xl py-2.5 px-4 text-sm outline-none transition-all appearance-none cursor-pointer"
               >
-                <option value="">All Authors</option>
+                <option value="" className="bg-card text-card-foreground">All Authors</option>
                 {authors.map((author) => (
-                  <option key={author} value={author}>
+                  <option key={author} value={author} className="bg-card text-card-foreground">
                     {author}
                   </option>
                 ))}
               </select>
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-zinc-500 text-xs">
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-muted-foreground text-xs">
                 ▼
               </div>
             </div>
@@ -136,7 +136,7 @@ export function Header({ authors, categories = [] }: HeaderProps) {
             {hasActiveFilters && (
               <button
                 onClick={resetFilters}
-                className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl transition-all cursor-pointer border border-zinc-700"
+                className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium bg-muted hover:bg-muted/80 text-foreground rounded-xl transition-all cursor-pointer border border-border"
               >
                 <RotateCcw size={14} />
                 <span>Reset</span>
@@ -144,12 +144,12 @@ export function Header({ authors, categories = [] }: HeaderProps) {
             )}
 
             {/* Layout Toggle Buttons */}
-            <div className="flex items-center bg-zinc-950 border border-zinc-800 p-1 rounded-xl">
+            <div className="flex items-center bg-card border border-border p-1 rounded-xl">
               <button
                 onClick={() => setLayoutMode('grid')}
                 className={`p-2 rounded-lg transition-all cursor-pointer ${layoutMode === 'grid'
-                    ? 'bg-red-600 text-white'
-                    : 'text-zinc-400 hover:text-white'
+                    ? 'bg-terracotta-primary text-white'
+                    : 'text-muted-foreground hover:text-foreground'
                   }`}
                 title="Grid view"
               >
@@ -158,8 +158,8 @@ export function Header({ authors, categories = [] }: HeaderProps) {
               <button
                 onClick={() => setLayoutMode('list')}
                 className={`p-2 rounded-lg transition-all cursor-pointer ${layoutMode === 'list'
-                    ? 'bg-red-600 text-white'
-                    : 'text-zinc-400 hover:text-white'
+                    ? 'bg-terracotta-primary text-white'
+                    : 'text-muted-foreground hover:text-foreground'
                   }`}
                 title="List view"
               >

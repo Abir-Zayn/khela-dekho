@@ -2,13 +2,15 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
-import { ChevronRight, Trash2, Camera, Loader2 } from 'lucide-react';
+import { ChevronRight, Trash2, Camera, Loader2, Sun, Moon, Monitor } from 'lucide-react';
 import { ProfileListTile } from './ProfileListTile';
 import { EditUsernameModal } from './EditUsernameModal';
 import { EditBioModal } from './EditBioModal';
 import { DeleteAccountModal } from './DeleteAccountModal';
 import { Avatar, AvatarImage, AvatarFallback } from '../../../../components/ui/avatar';
+import { Toggle } from '../../../../components/ui/toggle';
 import { uploadAvatarDirectly } from '../actions/update_user_profile';
 import type { AuthUser } from '../../auth/types';
 
@@ -19,6 +21,12 @@ interface AccountTabProps {
 export function AccountTab({ user: initialUser }: AccountTabProps) {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Optimistic local user state
   const [user, setUser] = useState<AuthUser | null>(initialUser);
@@ -42,6 +50,8 @@ export function AccountTab({ user: initialUser }: AccountTabProps) {
   const username = user?.username ? `@${user.username}` : '@anonymous';
   const fullName = user?.full_name || user?.username || 'Sports Fan';
   const bio = user?.bio || 'No bio written yet. Click edit to introduce yourself to the Khela Dekho community!';
+
+  const currentTheme = mounted ? theme || 'system' : 'system';
 
   // Helper to sync updated user across React Query and local state
   const applyUserUpdate = (updatedUser: AuthUser) => {
@@ -100,15 +110,15 @@ export function AccountTab({ user: initialUser }: AccountTabProps) {
         onClick={() => setModalState('isUsernameModalOpen', true)}
         value={
           <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold text-zinc-300 bg-zinc-900 border border-zinc-800 px-3.5 py-1.5 rounded-xl font-mono">
+            <span className="text-sm font-semibold text-foreground bg-muted border border-border px-3.5 py-1.5 rounded-xl font-mono">
               {username}
             </span>
-            <ChevronRight size={16} className="text-zinc-500" />
+            <ChevronRight size={16} className="text-muted-foreground" />
           </div>
         }
       />
 
-      <div className="border-t border-zinc-900" />
+      <div className="border-t border-border" />
 
       {/* 2. Profile Photo Tile */}
       <ProfileListTile
@@ -117,13 +127,13 @@ export function AccountTab({ user: initialUser }: AccountTabProps) {
         onClick={() => fileInputRef.current?.click()}
         value={
           <div className="flex items-center gap-3">
-            <span className="text-xs font-medium text-zinc-400 hidden sm:inline">
+            <span className="text-xs font-medium text-muted-foreground hidden sm:inline">
               {fullName}
             </span>
             <div className="relative group">
-              <Avatar key={user?.profile_photo_url || 'photo'} className="w-11 h-11 border-zinc-700 group-hover:border-red-500 transition-colors">
+              <Avatar key={user?.profile_photo_url || 'photo'} className="w-11 h-11 border-border group-hover:border-terracotta-primary transition-colors">
                 <AvatarImage src={user?.profile_photo_url || undefined} alt={fullName} />
-                <AvatarFallback className="text-sm bg-red-600">
+                <AvatarFallback className="text-sm bg-terracotta-primary text-white">
                   {fullName.charAt(0)}
                 </AvatarFallback>
               </Avatar>
@@ -135,12 +145,12 @@ export function AccountTab({ user: initialUser }: AccountTabProps) {
                 )}
               </div>
             </div>
-            <ChevronRight size={16} className="text-zinc-500" />
+            <ChevronRight size={16} className="text-muted-foreground" />
           </div>
         }
       />
 
-      <div className="border-t border-zinc-900" />
+      <div className="border-t border-border" />
 
       {/* 3. Bio Tile */}
       <ProfileListTile
@@ -149,19 +159,19 @@ export function AccountTab({ user: initialUser }: AccountTabProps) {
         onClick={() => setModalState('isBioModalOpen', true)}
         value={
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-red-500 hover:text-red-400">
+            <span className="text-xs font-semibold text-terracotta-primary hover:underline">
               Edit
             </span>
-            <ChevronRight size={16} className="text-zinc-500" />
+            <ChevronRight size={16} className="text-muted-foreground" />
           </div>
         }
       >
-        <p className="text-xs text-zinc-300 font-normal leading-relaxed italic bg-zinc-900/50 p-3 rounded-xl border border-zinc-900">
+        <p className="text-xs text-foreground font-normal leading-relaxed italic bg-muted/60 p-3 rounded-xl border border-border">
           &ldquo;{bio}&rdquo;
         </p>
       </ProfileListTile>
 
-      <div className="border-t border-zinc-900" />
+      <div className="border-t border-border" />
 
       {/* 4. Blocked Users Tile */}
       <ProfileListTile
@@ -172,17 +182,75 @@ export function AccountTab({ user: initialUser }: AccountTabProps) {
         }}
         value={
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-zinc-400 bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-xl">
+            <span className="text-xs font-semibold text-muted-foreground bg-muted border border-border px-3 py-1.5 rounded-xl">
               0 blocked
             </span>
-            <ChevronRight size={16} className="text-zinc-500" />
+            <ChevronRight size={16} className="text-muted-foreground" />
           </div>
         }
       />
 
+      <div className="border-t border-border" />
+
+      {/* 5. Theme Switching Tile */}
+      <ProfileListTile
+        title="Theme Preference"
+        description="Choose default System, Dark mode, or Day (Light) mode"
+        value={
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1 bg-background border border-border p-1 rounded-xl">
+              <Toggle
+                pressed={currentTheme === 'system'}
+                onPressedChange={(pressed) => {
+                  if (pressed) {
+                    setTheme('system');
+                    toast.success('System theme active');
+                  }
+                }}
+                className={currentTheme === 'system' ? 'bg-muted text-foreground border-border' : ''}
+              >
+                <Monitor size={14} className={currentTheme === 'system' ? 'text-terracotta-primary' : ''} />
+                <span>System</span>
+              </Toggle>
+
+              <Toggle
+                pressed={currentTheme === 'dark'}
+                onPressedChange={(pressed) => {
+                  if (pressed) {
+                    setTheme('dark');
+                    toast.success('Dark theme active');
+                  }
+                }}
+                className={currentTheme === 'dark' ? 'bg-muted text-foreground border-border' : ''}
+              >
+                <Moon size={14} className={currentTheme === 'dark' ? 'text-terracotta-primary' : ''} />
+                <span>Dark</span>
+              </Toggle>
+
+              <Toggle
+                pressed={currentTheme === 'light'}
+                onPressedChange={(pressed) => {
+                  if (pressed) {
+                    setTheme('light');
+                    toast.success('Day theme active');
+                  }
+                }}
+                className={currentTheme === 'light' ? 'bg-amber-500/20 text-amber-500 border-amber-500/40' : ''}
+              >
+                <Sun size={14} className={currentTheme === 'light' ? 'text-amber-500' : ''} />
+                <span>Day</span>
+              </Toggle>
+            </div>
+            <ChevronRight size={16} className="text-muted-foreground" />
+          </div>
+        }
+      />
+
+
+
       <div className="border-t border-zinc-900" />
 
-      {/* 5. Delete Account Tile */}
+      {/* 6. Delete Account Tile */}
       <ProfileListTile
         title="Delete Account"
         description="Permanently delete your account"
@@ -221,3 +289,4 @@ export function AccountTab({ user: initialUser }: AccountTabProps) {
     </div>
   );
 }
+
