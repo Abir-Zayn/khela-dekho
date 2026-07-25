@@ -19,6 +19,7 @@ dependencies = [
     "python-multipart>=0.0.32",
     "resend>=2.33.0",
     "sqlalchemy>=2.0.51",
+    "svix>=1.99.1",
     "uuid6>=2025.0.1",
 ]
 
