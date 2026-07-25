@@ -122,7 +122,7 @@ export function UserProfileTile({ user }: UserProfileTileProps) {
                 {displayName}
               </p>
               <Link
-                href="/profile"
+                href="/settings"
                 onClick={() => setIsDropdownOpen(false)}
                 className="text-[11px] font-semibold text-red-500 hover:text-red-400 transition-colors inline-block mt-0.5"
               >
