@@ -27,6 +27,15 @@ async def lifespan(app: FastAPI):
         await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS clerk_id VARCHAR(255);"))
         await conn.execute(text("ALTER TABLE users ALTER COLUMN hashed_password DROP NOT NULL;"))
         await conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_users_clerk_id ON users (clerk_id);"))
+        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS full_name VARCHAR(100);"))
+        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_photo_url VARCHAR(500);"))
+        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS location VARCHAR(100);"))
+        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT;"))
+        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS website_url VARCHAR(500);"))
+        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS twitter_handle VARCHAR(100);"))
+        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS instagram_handle VARCHAR(100);"))
+        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS reading_interests VARCHAR(50)[];"))
+        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS hobbies VARCHAR(50)[];"))
     
     # Yield control to the application
     yield 

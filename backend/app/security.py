@@ -1,7 +1,9 @@
 import uuid
 from datetime import datetime, timedelta, timezone
+from functools import lru_cache
 from typing import Annotated
 import secrets, hashlib
+import anyio
 import jwt
 from jwt import InvalidTokenError
 from fastapi import Depends, HTTPException, status
@@ -50,16 +52,31 @@ def create_refresh_token(user_id:uuid.UUID)->str:
         "refresh",
     )
 
+@lru_cache(maxsize=4)
+def _get_jwks_client(jwks_url: str) -> jwt.PyJWKClient:
+    """One PyJWKClient per JWKS url, cached process-wide.
+
+    A fresh client was previously built on every request, so its in-memory JWK-set
+    cache was never reused and each authenticated call did a blocking network GET to
+    Clerk. Reusing a single client (cache_jwk_set + lifespan) keeps the keys in memory
+    and only refetches after `lifespan` seconds. `timeout` bounds a slow JWKS host.
+    """
+    return jwt.PyJWKClient(jwks_url, cache_jwk_set=True, lifespan=3600, timeout=5)
+
+
 def decode_token(token: str) -> dict:
     """
     Decodes a JWT token. First attempts to decode as a Clerk token via JWKS if configured/detected,
     otherwise falls back to standard local HMAC secret decoding.
+
+    Blocking: PyJWKClient uses urllib on a cache miss, so callers on the event loop
+    should run this via a threadpool (see get_current_user).
     """
     try:
         unverified_header = jwt.get_unverified_header(token)
         if "kid" in unverified_header and settings.CLERK_ISSUER_URL:
             jwks_url = f"{settings.CLERK_ISSUER_URL.rstrip('/')}/.well-known/jwks.json"
-            jwks_client = jwt.PyJWKClient(jwks_url)
+            jwks_client = _get_jwks_client(jwks_url)
             signing_key = jwks_client.get_signing_key_from_jwt(token)
             return jwt.decode(
                 token,
@@ -87,7 +104,8 @@ async def get_current_user(
     )
 
     try:
-        payload = decode_token(token)
+        # decode_token may do a blocking JWKS fetch; keep the event loop free.
+        payload = await anyio.to_thread.run_sync(decode_token, token)
         sub = payload.get("sub")
         if not sub:
             raise credentials_error

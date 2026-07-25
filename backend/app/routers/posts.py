@@ -1,9 +1,10 @@
+import math
 import re
 from datetime import UTC, datetime
 from typing import Annotated
 import uuid
 from uuid6 import uuid7
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -16,6 +17,7 @@ from app.schemas import (
     DraftResponse,
     DraftUpsert,
     PostCreate,
+    PostListResponse,
     PostResponse,
     PostUpdate,
     UploadURLRequest,
@@ -23,6 +25,32 @@ from app.schemas import (
     ReactionCreate,
 )
 from app.security import can_modify_post, get_current_user, get_current_user_optional
+
+_HTML_TAG_RE = re.compile(r"<[^>]*>")
+_WORDS_PER_MINUTE = 200
+
+
+def _plain_text(content: str | None) -> str:
+    if not content:
+        return ""
+    return " ".join(_HTML_TAG_RE.sub(" ", content).split())
+
+
+def build_excerpt(content: str | None, max_chars: int = 200) -> str:
+    text = _plain_text(content)
+    return text if len(text) <= max_chars else text[:max_chars].rstrip() + "…"
+
+
+def estimate_read_minutes(content: str | None) -> int:
+    words = len(_plain_text(content).split())
+    return max(1, math.ceil(words / _WORDS_PER_MINUTE))
+
+
+def _attach_list_fields(post: models.Post) -> None:
+    """Derive card fields once so the list schema never ships the full body."""
+    post.excerpt = build_excerpt(post.content)
+    post.read_minutes = estimate_read_minutes(post.content)
+
 
 def normalize_tag(tag_name: str) -> tuple[str, str]:
     # Trim and strip leading '#'
@@ -76,12 +104,14 @@ async def get_or_create_tags(tag_names: list[str], db: AsyncSession) -> list[mod
 router = APIRouter(prefix="/api/posts", tags=["Posts"])
 
 
-@router.get("", response_model=list[PostResponse])
+@router.get("", response_model=list[PostListResponse])
 async def get_posts(
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[models.User | None, Depends(get_current_user_optional)],
     q: str | None = None,
     tag: str | None = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ):
     stmt = select(models.Post).options(
         selectinload(models.Post.user),
@@ -98,8 +128,16 @@ async def get_posts(
             stmt.where(models.Post.search_vector.op("@@")(tsquery))
             .order_by(func.ts_rank(models.Post.search_vector, tsquery).desc())
         )
+    else:
+        # Newest first for the default feed (previously unordered).
+        stmt = stmt.order_by(models.Post.date_posted.desc())
+    # Page the feed so a growing blog never ships every post/body in one response.
+    stmt = stmt.offset(offset).limit(limit)
     results = await db.execute(stmt)
     posts = results.scalars().all()
+
+    for p in posts:
+        _attach_list_fields(p)
 
     if current_user:
         post_ids = [p.id for p in posts]
@@ -485,11 +523,13 @@ async def delete_post(
     return None
 
 
-@router.get("/author/{author}", response_model=list[PostResponse])
+@router.get("/author/{author}", response_model=list[PostListResponse])
 async def get_posts_by_author(
     author: str,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[models.User | None, Depends(get_current_user_optional)],
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    offset: Annotated[int, Query(ge=0)] = 0,
 ):
     results = await db.execute(
         select(models.Post)
@@ -503,10 +543,16 @@ async def get_posts_by_author(
             models.User.username == author,
             models.Post.status == models.PostStatus.PUBLISHED,
         )
+        .order_by(models.Post.date_posted.desc())
+        .offset(offset)
+        .limit(limit)
     )
     author_posts = results.scalars().all()
     if not author_posts:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Posts by author not found")
+
+    for p in author_posts:
+        _attach_list_fields(p)
 
     if current_user:
         post_ids = [p.id for p in author_posts]

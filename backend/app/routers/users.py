@@ -1,14 +1,15 @@
 from app.security import require_role, get_current_user
 import uuid
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, UploadFile, File
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import models
 from app.database import get_db
 from app.schemas import UserResponse, UserProfileUpdate, UploadURLRequest, UploadURLResponse
-from app.s3 import delete_s3_object, extract_s3_key, generate_presigned_upload
+from app.s3 import delete_s3_object, extract_s3_key, generate_presigned_upload, s3_client
+from app.config import settings
 from app.clerk_sync import sync_clerk_username, sync_clerk_profile_image
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
@@ -80,6 +81,59 @@ async def get_avatar_upload_url(
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     return result
+
+
+@router.post("/avatar", response_model=UserResponse)
+async def upload_avatar(
+    file: UploadFile = File(...),
+    current_user: Annotated[models.User, Depends(get_current_user)] = None,
+    db: Annotated[AsyncSession, Depends(get_db)] = None,
+    background_tasks: BackgroundTasks = None,
+):
+    if file.content_type not in ["image/jpeg", "image/png", "image/webp"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Unsupported image format. Allowed: JPG, PNG, WebP",
+        )
+    
+    contents = await file.read()
+    if len(contents) > 5 * 1024 * 1024:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File size exceeds maximum limit of 5MB",
+        )
+    
+    ext = file.content_type.split("/")[-1]
+    key = f"users/{current_user.id}/{uuid.uuid4()}.{ext}"
+    
+    try:
+        s3_client.put_object(
+            Bucket=settings.S3_BUCKET_NAME,
+            Key=key,
+            Body=contents,
+            ContentType=file.content_type,
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to upload image to S3: {e}",
+        )
+    
+    file_url = f"https://{settings.S3_BUCKET_NAME}.s3.{settings.AWS_REGION}.amazonaws.com/{key}"
+    
+    if current_user.profile_photo_url:
+        old_key = extract_s3_key(current_user.profile_photo_url)
+        if old_key:
+            background_tasks.add_task(delete_s3_object, old_key)
+            
+    current_user.profile_photo_url = file_url
+    await db.commit()
+    await db.refresh(current_user)
+    
+    if current_user.clerk_id:
+        background_tasks.add_task(sync_clerk_profile_image, current_user.clerk_id, file_url)
+        
+    return current_user
 
 
 @router.get("/{user_id}", response_model=UserResponse)
