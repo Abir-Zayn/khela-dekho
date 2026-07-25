@@ -77,7 +77,7 @@ export function UserProfileTile({ user }: UserProfileTileProps) {
         onClick={() => setIsDropdownOpen((prev) => !prev)}
         className="flex items-center gap-2.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 hover:border-zinc-700 px-3 py-2 rounded-xl transition-all cursor-pointer select-none outline-none group"
       >
-        <Avatar className="w-7 h-7 border-zinc-700 group-hover:border-red-500 transition-colors">
+        <Avatar key={user?.profile_photo_url || 'trigger-photo'} className="w-7 h-7 border-zinc-700 group-hover:border-red-500 transition-colors">
           <AvatarImage src={user.profile_photo_url || undefined} alt={displayName} />
           <AvatarFallback className="text-[10px] bg-red-600">
             {displayName.charAt(0)}
@@ -97,7 +97,7 @@ export function UserProfileTile({ user }: UserProfileTileProps) {
         <div className="absolute right-0 mt-2 w-60 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl p-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150 space-y-2">
           {/* Profile Header & View Profile Link */}
           <div className="flex items-center gap-3 p-2 bg-zinc-950/70 rounded-xl border border-zinc-800/80">
-            <Avatar className="w-9 h-9 shrink-0">
+            <Avatar key={user?.profile_photo_url || 'dropdown-photo'} className="w-9 h-9 shrink-0">
               <AvatarImage src={user.profile_photo_url || undefined} alt={displayName} />
               <AvatarFallback className="text-sm bg-red-600">
                 {displayName.charAt(0)}

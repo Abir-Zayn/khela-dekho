@@ -1,34 +1,99 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ChevronRight, Trash2, ShieldAlert, Camera } from 'lucide-react';
+import { ChevronRight, Trash2, Camera, Loader2 } from 'lucide-react';
 import { ProfileListTile } from './ProfileListTile';
+import { EditUsernameModal } from './EditUsernameModal';
+import { EditBioModal } from './EditBioModal';
+import { DeleteAccountModal } from './DeleteAccountModal';
 import { Avatar, AvatarImage, AvatarFallback } from '../../../../components/ui/avatar';
+import { uploadAvatarDirectly } from '../actions/update_user_profile';
 import type { AuthUser } from '../../auth/types';
 
 interface AccountTabProps {
   user: AuthUser | null;
 }
 
-export function AccountTab({ user }: AccountTabProps) {
+export function AccountTab({ user: initialUser }: AccountTabProps) {
+  const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Optimistic local user state
+  const [user, setUser] = useState<AuthUser | null>(initialUser);
+
+  useEffect(() => {
+    setUser(initialUser);
+  }, [initialUser]);
+
+  // Modal States
+  const [isUsernameModalOpen, setIsUsernameModalOpen] = useState(false);
+  const [isBioModalOpen, setIsBioModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  // Loading States
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+
   const username = user?.username ? `@${user.username}` : '@anonymous';
   const fullName = user?.full_name || user?.username || 'Sports Fan';
   const bio = user?.bio || 'No bio written yet. Click edit to introduce yourself to the Khela Dekho community!';
 
-  const handleEditNotice = (featureName: string) => {
-    toast.info(`Edit ${featureName}`, {
-      description: `${featureName} editing modal will be available in the upcoming profile update.`,
-    });
+  // Helper to sync updated user across React Query and local state
+  const applyUserUpdate = (updatedUser: AuthUser) => {
+    setUser(updatedUser);
+    queryClient.setQueryData(['currentUser'], updatedUser);
+    queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+  };
+
+  // Handle Profile Photo File Upload
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File too large', { description: 'Profile picture must be less than 5 MB.' });
+      return;
+    }
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      toast.error('Invalid format', { description: 'Please select a JPG, PNG, or WebP image.' });
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Upload directly through backend endpoint to prevent browser S3 CORS errors
+      const updatedUser = await uploadAvatarDirectly(formData);
+      applyUserUpdate(updatedUser);
+      toast.success('Profile photo updated successfully!');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Photo upload failed';
+      toast.error('Upload Error', { description: msg });
+    } finally {
+      setIsUploadingPhoto(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   return (
     <div className="space-y-4">
+      {/* Hidden File Input for Avatar Upload */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+
       {/* 1. Username Tile */}
       <ProfileListTile
         title="Username"
         description="Edit your @username"
-        onClick={() => handleEditNotice('Username')}
+        onClick={() => setIsUsernameModalOpen(true)}
         value={
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold text-zinc-300 bg-zinc-900 border border-zinc-800 px-3.5 py-1.5 rounded-xl font-mono">
@@ -44,22 +109,26 @@ export function AccountTab({ user }: AccountTabProps) {
       {/* 2. Profile Photo Tile */}
       <ProfileListTile
         title="Profile photo"
-        description="Edit your profile photo"
-        onClick={() => handleEditNotice('Profile Photo')}
+        description="Edit your profile photo (JPG, PNG, WebP — max 5MB)"
+        onClick={() => fileInputRef.current?.click()}
         value={
           <div className="flex items-center gap-3">
             <span className="text-xs font-medium text-zinc-400 hidden sm:inline">
               {fullName}
             </span>
             <div className="relative group">
-              <Avatar className="w-11 h-11 border-zinc-700 group-hover:border-red-500 transition-colors">
+              <Avatar key={user?.profile_photo_url || 'photo'} className="w-11 h-11 border-zinc-700 group-hover:border-red-500 transition-colors">
                 <AvatarImage src={user?.profile_photo_url || undefined} alt={fullName} />
                 <AvatarFallback className="text-sm bg-red-600">
                   {fullName.charAt(0)}
                 </AvatarFallback>
               </Avatar>
-              <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                <Camera size={14} className="text-white" />
+              <div className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                {isUploadingPhoto ? (
+                  <Loader2 size={16} className="text-white animate-spin" />
+                ) : (
+                  <Camera size={16} className="text-white" />
+                )}
               </div>
             </div>
             <ChevronRight size={16} className="text-zinc-500" />
@@ -73,7 +142,7 @@ export function AccountTab({ user }: AccountTabProps) {
       <ProfileListTile
         title="Bio"
         description="Edit your bio"
-        onClick={() => handleEditNotice('Bio')}
+        onClick={() => setIsBioModalOpen(true)}
         value={
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold text-red-500 hover:text-red-400">
@@ -94,7 +163,9 @@ export function AccountTab({ user }: AccountTabProps) {
       <ProfileListTile
         title="Blocked Users"
         description="Edit the list of users you have blocked"
-        onClick={() => handleEditNotice('Blocked Users')}
+        onClick={() => {
+          toast.info('Blocked Users', { description: 'You have no blocked users on your account.' });
+        }}
         value={
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold text-zinc-400 bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-xl">
@@ -112,11 +183,7 @@ export function AccountTab({ user }: AccountTabProps) {
         title="Delete Account"
         description="Permanently delete your account"
         isDanger
-        onClick={() => {
-          toast.error('Delete Account', {
-            description: 'Please contact support to permanently remove your account and data.',
-          });
-        }}
+        onClick={() => setIsDeleteModalOpen(true)}
         value={
           <button
             type="button"
@@ -126,6 +193,26 @@ export function AccountTab({ user }: AccountTabProps) {
             <span>Delete Account</span>
           </button>
         }
+      />
+
+      {/* Modular Modals */}
+      <EditUsernameModal
+        isOpen={isUsernameModalOpen}
+        initialUsername={user?.username || ''}
+        onClose={() => setIsUsernameModalOpen(false)}
+        onSuccess={applyUserUpdate}
+      />
+
+      <EditBioModal
+        isOpen={isBioModalOpen}
+        initialBio={user?.bio || ''}
+        onClose={() => setIsBioModalOpen(false)}
+        onSuccess={applyUserUpdate}
+      />
+
+      <DeleteAccountModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
       />
     </div>
   );
