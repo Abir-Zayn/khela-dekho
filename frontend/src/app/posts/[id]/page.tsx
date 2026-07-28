@@ -16,12 +16,13 @@ import { getSinglePost } from '@/src/app/features/sports-blog-home/actions/get_s
 import { reactToPost, removeReaction, ReactionType } from '@/src/app/features/sports-blog-home/actions/react_on_post';
 import { getTagColor, getPostGradient, getReadTime } from '@/src/app/features/sports-blog-home/utils/postDisplay';
 import { Post } from '@/src/app/features/sports-blog-home/types';
+import { getCurrentUser } from '@/src/app/features/auth';
 
 import { WrittenByAuthorCard } from './components/written-by-author-card';
 import { PostArticleHeader } from './components/post-article-header';
 import { PostArticleContent } from './components/post-article-content';
 import { PostReactionsBar } from './components/post-reactions-bar';
-import { BrandLogo } from '@/src/app/components/BrandLogo';
+import { BrandLogo } from '../../components/BrandLogo';
 
 interface VisitingPostPageProps {
   params: Promise<{ id: string }>;
@@ -59,6 +60,13 @@ export default function VisitingPostPage({ params }: VisitingPostPageProps) {
     queryFn: () => getSinglePost(postId),
     enabled: Boolean(postId),
   });
+
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => getCurrentUser(),
+  });
+
+  const isAuthor = Boolean(user && post && (user.id === post.user_id || user.username === post.author));
 
   // Reaction mutation logic (Like, Love, Laugh)
   const reactionMutation = useMutation({
@@ -196,6 +204,7 @@ export default function VisitingPostPage({ params }: VisitingPostPageProps) {
           readTime={readTime}
           copied={copied}
           onShare={handleShare}
+          isAuthor={isAuthor}
         />
 
         {/* 2. Article Content Component (Cover image, Video stream preview, Body text, References, Topics) */}

@@ -7,8 +7,7 @@ import Link from 'next/link';
 import { useSportsBlogStore } from '../utils/store';
 import { getCurrentUser } from '../../auth';
 import { UserProfileTile } from './UserProfileTile';
-
-import { BrandLogo } from '@/src/app/components/BrandLogo';
+import { BrandLogo } from '../../../components/BrandLogo';
 
 interface HeaderProps {
   authors: string[];
@@ -49,7 +48,6 @@ export function Header({ authors, categories = [] }: HeaderProps) {
           {/* Logo Brand Area (Text Only) */}
           <BrandLogo size="md" showSubtitle={true} />
 
-
           {/* Account Info */}
           <div className="hidden lg:flex items-center border-l border-border pl-6 text-sm text-muted-foreground gap-4">
             <Link
@@ -64,9 +62,8 @@ export function Header({ authors, categories = [] }: HeaderProps) {
           </div>
         </div>
 
-        {/* Filter Controls Area */}
-        <div className="mt-8 bg-background border border-border rounded-2xl p-4 md:p-5 flex flex-col md:flex-row items-center gap-4 justify-between transition-colors duration-200">
-
+        {/* Filter Controls Row (Card container background removed) */}
+        <div className="mt-6 flex flex-col md:flex-row items-center gap-4 justify-between">
           {/* Search Box */}
           <div className="relative w-full md:max-w-md">
             <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground">
@@ -80,7 +77,6 @@ export function Header({ authors, categories = [] }: HeaderProps) {
               className="w-full bg-card text-card-foreground placeholder:text-muted-foreground border border-border focus:border-terracotta-primary focus:ring-1 focus:ring-terracotta-primary rounded-xl py-2.5 pl-10 pr-4 text-sm transition-all outline-none"
             />
           </div>
-
           {/* Filters & Toggles */}
           <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
             {/* Category Dropdown */}

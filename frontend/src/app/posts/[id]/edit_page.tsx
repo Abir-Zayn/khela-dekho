@@ -1,0 +1,10 @@
+import EditPostRoot from '../../features/create-post/components/EditPostRoot';
+
+interface EditPostPageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function EditPostPage({ params }: EditPostPageProps) {
+  const { id } = await params;
+  return <EditPostRoot postId={id} />;
+}

@@ -24,26 +24,26 @@ export function NotificationsTab({ user }: NotificationsTabProps) {
         description="Receive weekly summaries of top trending match reviews and transfer updates"
         onClick={() => handleToggle('Email Digest')}
         value={
-          <span className="text-xs font-bold text-emerald-400 bg-emerald-950/40 border border-emerald-900/60 px-3 py-1.5 rounded-xl">
+          <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-xl">
             Subscribed
           </span>
         }
       />
 
-      <div className="border-t border-zinc-900" />
+      <div className="border-t border-border" />
 
       <ProfileListTile
         title="Post Reaction Alerts"
         description="Get notified when someone reacts (Like, Love, Laugh) to your articles"
         onClick={() => handleToggle('Reactions')}
         value={
-          <span className="text-xs font-bold text-emerald-400 bg-emerald-950/40 border border-emerald-900/60 px-3 py-1.5 rounded-xl">
+          <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-xl">
             Enabled
           </span>
         }
       />
 
-      <div className="border-t border-zinc-900" />
+      <div className="border-t border-border" />
 
       <ProfileListTile
         title="Live Match Goal Tickers"
@@ -51,11 +51,12 @@ export function NotificationsTab({ user }: NotificationsTabProps) {
         onClick={() => handleToggle('Live Tickers')}
         value={
           <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-zinc-400">Configure Teams</span>
-            <ChevronRight size={16} className="text-zinc-500" />
+            <span className="text-xs font-medium text-muted-foreground">Configure Teams</span>
+            <ChevronRight size={16} className="text-muted-foreground" />
           </div>
         }
       />
     </div>
   );
 }
+

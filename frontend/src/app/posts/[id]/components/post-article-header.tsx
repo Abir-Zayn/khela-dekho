@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { Calendar, Clock, Share2, Check } from 'lucide-react';
+import Link from 'next/link';
+import { Calendar, Clock, Share2, Check, Edit3 } from 'lucide-react';
 import { Post, Tag } from '@/src/app/features/sports-blog-home/types';
 import { formatDate } from '@/src/app/features/sports-blog-home/utils/postDisplay';
 
@@ -12,6 +13,7 @@ export interface PostArticleHeaderProps {
   readTime: number;
   copied: boolean;
   onShare: () => void;
+  isAuthor?: boolean;
 }
 
 export function PostArticleHeader({
@@ -21,6 +23,7 @@ export function PostArticleHeader({
   readTime,
   copied,
   onShare,
+  isAuthor,
 }: PostArticleHeaderProps) {
   const tags: Tag[] = post.tags || [];
   const authorInitial = post.author ? post.author.charAt(0).toUpperCase() : 'K';
@@ -75,13 +78,26 @@ export function PostArticleHeader({
           </div>
         </div>
 
-        <button
-          onClick={onShare}
-          className="p-2.5 rounded-full bg-card hover:bg-muted text-muted-foreground hover:text-foreground border border-border transition-colors cursor-pointer shadow-sm"
-          title="Share article link"
-        >
-          {copied ? <Check size={18} className="text-emerald-500" /> : <Share2 size={18} />}
-        </button>
+        <div className="flex items-center gap-2">
+          {isAuthor && (
+            <Link
+              href={`/posts/${post.id}/edit`}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-terracotta-primary/10 hover:bg-terracotta-primary text-terracotta-primary hover:text-white border border-terracotta-primary/30 text-xs font-bold transition-all cursor-pointer shadow-sm"
+              title="Edit this article"
+            >
+              <Edit3 size={14} />
+              <span>Edit Story</span>
+            </Link>
+          )}
+
+          <button
+            onClick={onShare}
+            className="p-2.5 rounded-full bg-card hover:bg-muted text-muted-foreground hover:text-foreground border border-border transition-colors cursor-pointer shadow-sm"
+            title="Share article link"
+          >
+            {copied ? <Check size={18} className="text-emerald-500" /> : <Share2 size={18} />}
+          </button>
+        </div>
       </div>
     </header>
   );

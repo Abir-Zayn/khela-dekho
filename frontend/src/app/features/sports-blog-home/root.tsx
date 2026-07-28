@@ -109,7 +109,7 @@ export default function SportsBlogHome() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans flex flex-col transition-colors duration-200 selection:bg-terracotta-primary selection:text-white">
+    <div className="min-h-screen bg-card text-foreground font-sans flex flex-col transition-colors duration-200 selection:bg-terracotta-primary selection:text-white">
 
       {/* Navigation Header */}
       <Header authors={uniqueAuthors} categories={uniqueCategories} />
