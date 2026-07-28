@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { getCurrentUser } from '../auth';
 import { LexicalEditor } from './components/LexicalEditor';
 import { CategoryTagsTile } from './components/CategoryTagsTile';
+import { BrandLogo } from '../../components/BrandLogo';
 import { createDraftAction } from './actions/create_draft_action';
 import { saveDraftAction } from './actions/save_draft_action';
 import { publishDraftAction } from './actions/publish_draft_action';
@@ -352,11 +353,9 @@ export default function CreatePostRoot() {
               <ArrowLeft size={20} />
             </Link>
 
-            <div className="flex items-center gap-2">
-              <div className="bg-red-600 p-1.5 rounded-lg">
-                <Flame size={18} className="text-white" />
-              </div>
-              <div className="hidden sm:block">
+            <div className="flex items-center gap-3">
+              <BrandLogo size="sm" showSubtitle={false} href="/" />
+              <div className="hidden sm:block border-l border-zinc-800 pl-3">
                 <span className="text-xs font-bold uppercase tracking-wider text-zinc-400 block">
                   Draft in {user?.full_name || user?.username || 'Khela Dekho'}
                 </span>

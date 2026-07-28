@@ -21,7 +21,7 @@ export function PostReactionsBar({
   onShare,
 }: PostReactionsBarProps) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 py-6 border-y border-zinc-900 mb-12">
+    <div className="flex flex-wrap items-center justify-between gap-4 py-6 border-y border-border mb-12">
       <div className="flex items-center gap-4 sm:gap-6">
         <button
           onClick={() => onReact('like')}
@@ -29,7 +29,7 @@ export function PostReactionsBar({
           className={`flex items-center gap-2 text-sm font-semibold transition-all cursor-pointer hover:scale-105 ${
             post.current_user_reaction === 'like'
               ? 'text-red-500'
-              : 'text-zinc-400 hover:text-zinc-200'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
           title="Like post"
         >
@@ -45,14 +45,14 @@ export function PostReactionsBar({
           disabled={isPending}
           className={`flex items-center gap-2 text-sm font-semibold transition-all cursor-pointer hover:scale-105 ${
             post.current_user_reaction === 'love'
-              ? 'text-pink-400'
-              : 'text-zinc-400 hover:text-zinc-200'
+              ? 'text-pink-500'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
           title="Love post"
         >
           <Flame
             size={18}
-            className={post.current_user_reaction === 'love' ? 'fill-pink-400 text-pink-400' : ''}
+            className={post.current_user_reaction === 'love' ? 'fill-pink-500 text-pink-500' : ''}
           />
           <span>{post.reaction_counts?.love || 0}</span>
         </button>
@@ -62,14 +62,14 @@ export function PostReactionsBar({
           disabled={isPending}
           className={`flex items-center gap-2 text-sm font-semibold transition-all cursor-pointer hover:scale-105 ${
             post.current_user_reaction === 'laugh'
-              ? 'text-amber-400'
-              : 'text-zinc-400 hover:text-zinc-200'
+              ? 'text-amber-500'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
           title="Laugh at post"
         >
           <Smile
             size={18}
-            className={post.current_user_reaction === 'laugh' ? 'fill-amber-400 text-amber-400' : ''}
+            className={post.current_user_reaction === 'laugh' ? 'fill-amber-500 text-amber-500' : ''}
           />
           <span>{post.reaction_counts?.laugh || 0}</span>
         </button>
@@ -77,12 +77,12 @@ export function PostReactionsBar({
 
       <button
         onClick={onShare}
-        className="flex items-center gap-2 text-xs font-bold text-zinc-400 hover:text-white transition-colors cursor-pointer"
+        className="flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
       >
         {copied ? (
           <>
-            <Check size={16} className="text-green-500" />
-            <span className="text-green-400">Link Copied</span>
+            <Check size={16} className="text-emerald-500" />
+            <span className="text-emerald-500">Link Copied</span>
           </>
         ) : (
           <>
@@ -94,3 +94,4 @@ export function PostReactionsBar({
     </div>
   );
 }
+

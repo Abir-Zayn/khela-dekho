@@ -53,27 +53,28 @@ function InitialHtmlPlugin({ html }: { html?: string }) {
 }
 
 const theme = {
-  paragraph: 'mb-4 text-zinc-300 leading-relaxed text-lg',
+  paragraph: 'mb-4 leading-relaxed text-lg',
   heading: {
-    h1: 'text-3xl font-extrabold text-white mt-8 mb-4 tracking-tight',
-    h2: 'text-2xl font-bold text-white mt-6 mb-3 tracking-tight',
-    h3: 'text-xl font-semibold text-white mt-4 mb-2',
+    h1: 'text-3xl font-extrabold mt-8 mb-4 tracking-tight',
+    h2: 'text-2xl font-bold mt-6 mb-3 tracking-tight',
+    h3: 'text-xl font-semibold mt-4 mb-2',
   },
-  quote: 'border-l-4 border-red-500 pl-4 py-2 italic text-zinc-400 bg-zinc-900/40 rounded-r-lg my-4 text-xl font-serif',
+  quote: 'border-l-4 border-amber-500 pl-4 py-2 italic opacity-90 rounded-r-lg my-4 text-xl font-serif',
   list: {
-    ul: 'list-disc list-inside mb-4 space-y-1 text-zinc-300 text-lg',
-    ol: 'list-decimal list-inside mb-4 space-y-1 text-zinc-300 text-lg',
+    ul: 'list-disc list-inside mb-4 space-y-1 text-lg',
+    ol: 'list-decimal list-inside mb-4 space-y-1 text-lg',
     listitem: 'pl-2',
   },
   text: {
-    bold: 'font-bold text-white',
+    bold: 'font-bold',
     italic: 'italic',
     underline: 'underline decoration-amber-500 underline-offset-4',
-    strikethrough: 'line-through text-zinc-500',
-    code: 'bg-zinc-800 text-amber-400 px-2 py-0.5 rounded text-sm font-mono',
+    strikethrough: 'line-through opacity-60',
+    code: 'bg-muted text-amber-500 px-2 py-0.5 rounded text-sm font-mono',
   },
-  link: 'text-red-400 hover:text-red-300 underline font-medium cursor-pointer',
+  link: 'text-red-500 hover:text-red-400 underline font-medium cursor-pointer',
 };
+
 
 export function LexicalEditor({ onChange, placeholder = "Type / for actions, or tell your story...", initialHtml }: LexicalEditorProps) {
   const initialConfig = {

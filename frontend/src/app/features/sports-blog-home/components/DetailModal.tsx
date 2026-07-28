@@ -124,8 +124,13 @@ export function DetailModal({ post, onClose }: DetailModalProps) {
             {/* Main Rich Text Content Body */}
             {post.content.trim().startsWith('<') ? (
               <div
-                className="text-base sm:text-lg leading-relaxed text-foreground prose dark:prose-invert max-w-none [&_img]:rounded-2xl [&_iframe]:rounded-2xl [&_iframe]:w-full [&_iframe]:aspect-video [&_blockquote]:border-l-4 [&_blockquote]:border-terracotta-primary [&_blockquote]:bg-muted/60 [&_blockquote]:p-4 [&_blockquote]:rounded-r-xl"
-                dangerouslySetInnerHTML={{ __html: post.content }}
+                className="text-base sm:text-lg leading-relaxed text-foreground prose dark:prose-invert max-w-none [&_h1]:text-foreground [&_h2]:text-foreground [&_h3]:text-foreground [&_h4]:text-foreground [&_p]:text-foreground [&_li]:text-foreground [&_span]:text-foreground [&_strong]:text-foreground [&_b]:text-foreground [&_em]:text-foreground [&_img]:rounded-2xl [&_iframe]:rounded-2xl [&_iframe]:w-full [&_iframe]:aspect-video [&_blockquote]:border-l-4 [&_blockquote]:border-terracotta-primary [&_blockquote]:bg-muted/60 [&_blockquote]:p-4 [&_blockquote]:rounded-r-xl"
+                dangerouslySetInnerHTML={{
+                  __html: post.content
+                    .replace(/\btext-white\b/gi, '')
+                    .replace(/\btext-zinc-[12345]00\b/gi, '')
+                    .replace(/\bbg-zinc-900(?:\/\d+)?\b/gi, ''),
+                }}
               />
             ) : (
               <p className="text-base sm:text-lg leading-relaxed whitespace-pre-line text-foreground">

@@ -8,6 +8,8 @@ import { PublishingTab } from './components/PublishingTab';
 import { NotificationsTab } from './components/NotificationsTab';
 import type { SettingsTab, SettingsViewProps } from './types';
 
+import { BrandLogo } from '../../components/BrandLogo';
+
 export default function SettingsRoot({ user }: SettingsViewProps) {
   const [activeTab, setActiveTab] = useState<SettingsTab>('account');
 
@@ -24,14 +26,7 @@ export default function SettingsRoot({ user }: SettingsViewProps) {
             <span>Back to Arena</span>
           </Link>
 
-          <div className="flex items-center gap-2">
-            <div className="bg-terracotta-primary p-1.5 rounded-lg flex items-center justify-center">
-              <Flame size={16} className="text-white" />
-            </div>
-            <span className="text-xs font-extrabold tracking-tighter uppercase italic text-foreground">
-              KHELA <span className="text-terracotta-primary">DEKHO</span>
-            </span>
-          </div>
+          <BrandLogo size="sm" showSubtitle={false} href="/" />
         </div>
       </header>
 

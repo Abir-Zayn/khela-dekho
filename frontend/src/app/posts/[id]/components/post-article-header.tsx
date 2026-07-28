@@ -36,7 +36,7 @@ export function PostArticleHeader({
         {tags.map((t: Tag) => (
           <span
             key={t.id || t.name}
-            className="text-xs text-zinc-400 font-semibold bg-zinc-900 px-2.5 py-0.5 rounded-md border border-zinc-800"
+            className="text-xs text-muted-foreground font-semibold bg-card px-2.5 py-0.5 rounded-md border border-border"
           >
             #{t.name}
           </span>
@@ -44,24 +44,24 @@ export function PostArticleHeader({
       </div>
 
       {/* Article Title */}
-      <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-[1.15] tracking-tight mb-6">
+      <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-foreground leading-[1.15] tracking-tight mb-6">
         {post.title}
       </h1>
 
       {/* Author & Publication Details */}
-      <div className="flex items-center justify-between border-y border-zinc-900 py-4">
+      <div className="flex items-center justify-between border-y border-border py-4">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-red-600 to-amber-600 flex items-center justify-center font-black text-sm text-white shadow-md border border-white/10">
+          <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-terracotta-primary to-amber-500 flex items-center justify-center font-black text-sm text-white shadow-md border border-white/20">
             {authorInitial}
           </div>
           <div>
-            <div className="font-bold text-sm text-zinc-100 flex items-center gap-2">
+            <div className="font-bold text-sm text-foreground flex items-center gap-2">
               <span>{post.author}</span>
-              <span className="text-[10px] font-semibold text-red-500 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20 uppercase tracking-wider">
+              <span className="text-[10px] font-semibold text-terracotta-primary bg-terracotta-primary/10 px-2 py-0.5 rounded border border-terracotta-primary/20 uppercase tracking-wider">
                 Author
               </span>
             </div>
-            <div className="flex items-center gap-2 text-xs text-zinc-400 mt-0.5">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
               <span className="flex items-center gap-1">
                 <Calendar size={12} />
                 {formatDate(post.date_posted)}
@@ -77,12 +77,13 @@ export function PostArticleHeader({
 
         <button
           onClick={onShare}
-          className="p-2.5 rounded-full bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-800 transition-colors cursor-pointer"
+          className="p-2.5 rounded-full bg-card hover:bg-muted text-muted-foreground hover:text-foreground border border-border transition-colors cursor-pointer shadow-sm"
           title="Share article link"
         >
-          {copied ? <Check size={18} className="text-green-500" /> : <Share2 size={18} />}
+          {copied ? <Check size={18} className="text-emerald-500" /> : <Share2 size={18} />}
         </button>
       </div>
     </header>
   );
 }
+

@@ -88,11 +88,10 @@ export function CategoryTagsTile({
           )}
 
           <span
-            className={`text-xs px-2.5 py-0.5 rounded-full font-medium flex items-center gap-1 ${
-              hasCover
+            className={`text-xs px-2.5 py-0.5 rounded-full font-medium flex items-center gap-1 ${hasCover
                 ? 'bg-green-500/10 border border-green-500/30 text-green-400'
                 : 'bg-zinc-800/60 border border-zinc-700 text-zinc-400'
-            }`}
+              }`}
           >
             <ImageIcon size={11} /> {hasCover ? 'Cover: first image' : 'Cover: default'}
           </span>
@@ -119,11 +118,10 @@ export function CategoryTagsTile({
                     key={cat.id}
                     type="button"
                     onClick={() => onSelectCategory(cat.id)}
-                    className={`text-xs px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer font-medium ${
-                      isSelected
+                    className={`text-xs px-3.5 py-1.5 rounded-full transition-all flex items-center gap-1.5 cursor-pointer font-medium ${isSelected
                         ? 'bg-red-600 text-white font-bold shadow-md shadow-red-950/60 ring-2 ring-red-500/50'
                         : 'bg-zinc-950 hover:bg-zinc-800 text-zinc-300 border border-zinc-800'
-                    }`}
+                      }`}
                   >
                     {isSelected && <Check size={12} />}
                     {cat.name}

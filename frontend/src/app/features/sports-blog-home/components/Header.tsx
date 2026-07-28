@@ -8,6 +8,8 @@ import { useSportsBlogStore } from '../utils/store';
 import { getCurrentUser } from '../../auth';
 import { UserProfileTile } from './UserProfileTile';
 
+import { BrandLogo } from '@/src/app/components/BrandLogo';
+
 interface HeaderProps {
   authors: string[];
   categories?: string[];
@@ -44,20 +46,9 @@ export function Header({ authors, categories = [] }: HeaderProps) {
       {/* Main Header Container */}
       <div className="max-w-[2000px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          {/* Logo Brand Area */}
-          <div className="flex items-center gap-3">
-            <div className="bg-terracotta-primary p-2.5 rounded-xl shadow-lg flex items-center justify-center rotate-[-3deg] hover:rotate-0 transition-transform duration-300">
-              <Flame size={28} className="text-white animate-pulse" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-extrabold tracking-tighter uppercase italic leading-none text-foreground">
-                KHELA <span className="text-terracotta-primary">DEKHO</span>
-              </h1>
-              <p className="text-xs text-muted-foreground font-semibold tracking-widest uppercase mt-0.5">
-                The Ultimate Sports Arena
-              </p>
-            </div>
-          </div>
+          {/* Logo Brand Area (Text Only) */}
+          <BrandLogo size="md" showSubtitle={true} />
+
 
           {/* Account Info */}
           <div className="hidden lg:flex items-center border-l border-border pl-6 text-sm text-muted-foreground gap-4">
@@ -148,8 +139,8 @@ export function Header({ authors, categories = [] }: HeaderProps) {
               <button
                 onClick={() => setLayoutMode('grid')}
                 className={`p-2 rounded-lg transition-all cursor-pointer ${layoutMode === 'grid'
-                    ? 'bg-terracotta-primary text-white'
-                    : 'text-muted-foreground hover:text-foreground'
+                  ? 'bg-terracotta-primary text-white'
+                  : 'text-muted-foreground hover:text-foreground'
                   }`}
                 title="Grid view"
               >
@@ -158,8 +149,8 @@ export function Header({ authors, categories = [] }: HeaderProps) {
               <button
                 onClick={() => setLayoutMode('list')}
                 className={`p-2 rounded-lg transition-all cursor-pointer ${layoutMode === 'list'
-                    ? 'bg-terracotta-primary text-white'
-                    : 'text-muted-foreground hover:text-foreground'
+                  ? 'bg-terracotta-primary text-white'
+                  : 'text-muted-foreground hover:text-foreground'
                   }`}
                 title="List view"
               >
