@@ -1,11 +1,11 @@
 import math
 import re
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 import uuid
 from uuid6 import uuid7
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
-from sqlalchemy import select, func
+from sqlalchemy import and_, case, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -50,6 +50,23 @@ def _attach_list_fields(post: models.Post) -> None:
     """Derive card fields once so the list schema never ships the full body."""
     post.excerpt = build_excerpt(post.content)
     post.read_minutes = estimate_read_minutes(post.content)
+
+def _recent_published_posts_stmt(
+    *,
+    post_id: uuid.UUID,
+    limit: int,
+    exclude_ids: list[uuid.UUID],
+    category_id: uuid.UUID | None = None,
+):
+    stmt = select(models.Post.id).where(
+        models.Post.id != post_id,
+        models.Post.status == models.PostStatus.PUBLISHED,
+    )
+    if category_id is not None:
+        stmt = stmt.where(models.Post.category_id == category_id)
+    if exclude_ids:
+        stmt = stmt.where(models.Post.id.notin_(exclude_ids))
+    return stmt.order_by(models.Post.date_posted.desc()).limit(limit)
 
 
 def normalize_tag(tag_name: str) -> tuple[str, str]:
@@ -332,6 +349,126 @@ async def publish_draft(
     if published:
         published.current_user_reaction = None
     return published
+
+@router.get("/{post_id}/related", response_model=list[PostListResponse])
+async def get_related_posts(
+    post_id: uuid.UUID,
+    response: Response,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    limit: int = 4,
+):
+    """Content-based related posts (tags/category) with recency-aware fallback."""
+    base_post_res = await db.execute(
+        select(models.Post.status, models.Post.category_id).where(models.Post.id == post_id)
+    )
+    base_post = base_post_res.first()
+    if not base_post or base_post.status != models.PostStatus.PUBLISHED:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+    limit = max(1, min(limit, 10))
+
+    category_id: uuid.UUID | None = base_post.category_id
+    source_tags_res = await db.execute(
+        select(models.post_tags.c.tag_id).where(models.post_tags.c.post_id == post_id)
+    )
+    source_tag_ids = source_tags_res.scalars().all()
+
+    selected_ids: list[uuid.UUID] = []
+    freshness_cutoff = datetime.now(UTC) - timedelta(days=30)
+    freshness_bonus = case((models.Post.date_posted > freshness_cutoff, 2), else_=0)
+    same_category_bonus = (
+        case((models.Post.category_id == category_id, 5), else_=0)
+        if category_id is not None
+        else 0
+    )
+
+    # Step 1: score by shared tags (+ category/freshness bonus).
+    if source_tag_ids:
+        overlap_filters = [models.post_tags.c.tag_id.is_not(None)]
+        if category_id is not None:
+            overlap_filters.append(models.Post.category_id == category_id)
+
+        score = (
+            func.count(models.post_tags.c.tag_id) * 10 + same_category_bonus + freshness_bonus
+        ).label("score")
+        scored_res = await db.execute(
+            select(models.Post.id, score)
+            .select_from(models.Post)
+            .outerjoin(
+                models.post_tags,
+                and_(
+                    models.post_tags.c.post_id == models.Post.id,
+                    models.post_tags.c.tag_id.in_(source_tag_ids),
+                ),
+            )
+            .where(
+                models.Post.id != post_id,
+                models.Post.status == models.PostStatus.PUBLISHED,
+                or_(*overlap_filters),
+            )
+            .group_by(models.Post.id)
+            .order_by(score.desc(), models.Post.date_posted.desc())
+            .limit(limit)
+        )
+        selected_ids.extend(scored_res.scalars().all())
+    elif category_id is not None:
+        # Category-only overlap when source post has no tags.
+        score = (same_category_bonus + freshness_bonus).label("score")
+        scored_res = await db.execute(
+            select(models.Post.id, score)
+            .where(
+                models.Post.id != post_id,
+                models.Post.status == models.PostStatus.PUBLISHED,
+                models.Post.category_id == category_id,
+            )
+            .order_by(score.desc(), models.Post.date_posted.desc())
+            .limit(limit)
+        )
+        selected_ids.extend(scored_res.scalars().all())
+
+    # Step 2: fill from latest in the same category.
+    if len(selected_ids) < limit and category_id is not None:
+        same_category_res = await db.execute(
+            _recent_published_posts_stmt(
+                post_id=post_id,
+                category_id=category_id,
+                exclude_ids=selected_ids,
+                limit=limit - len(selected_ids),
+            )
+        )
+        selected_ids.extend(same_category_res.scalars().all())
+
+    # Step 3: final top-up from latest site-wide.
+    if len(selected_ids) < limit:
+        latest_res = await db.execute(
+            _recent_published_posts_stmt(
+                post_id=post_id,
+                exclude_ids=selected_ids,
+                limit=limit - len(selected_ids),
+            )
+        )
+        selected_ids.extend(latest_res.scalars().all())
+
+    if not selected_ids:
+        response.headers["Cache-Control"] = "public, max-age=300"
+        return []
+
+    related_res = await db.execute(
+        select(models.Post)
+        .options(
+            selectinload(models.Post.user),
+            selectinload(models.Post.category),
+            selectinload(models.Post.tags),
+        )
+        .where(models.Post.id.in_(selected_ids))
+    )
+    related_posts_by_id = {post.id: post for post in related_res.scalars().all()}
+    related_posts = [related_posts_by_id[pid] for pid in selected_ids if pid in related_posts_by_id]
+    for post in related_posts:
+        _attach_list_fields(post)
+        post.current_user_reaction = None
+
+    response.headers["Cache-Control"] = "public, max-age=300"
+    return related_posts
 
 
 @router.get("/{post_id}", response_model=PostResponse)
