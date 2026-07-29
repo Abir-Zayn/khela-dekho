@@ -37,7 +37,7 @@ export function PostCard({
   borderRadius = 'rounded-[12px]',
   imageHeight = 'h-[180px]',
   cardWidth = 'w-full max-w-[480px]',
-  cardHeight = 'h-[400px]',
+  cardHeight = 'h-[408px]',
   className = '',
   onClick,
 }: PostCardProps) {
