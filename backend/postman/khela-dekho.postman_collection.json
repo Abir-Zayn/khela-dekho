@@ -1,0 +1,1205 @@
+{
+  "info": {
+    "_postman_id": "166b2f42-a255-5f7a-9725-954ccd29a37c",
+    "name": "Khela Dekho API",
+    "description": "Auto-generated from the FastAPI OpenAPI schema by `backend/scripts/generate_postman.py`. Do not hand-edit \u2014 re-run the script after changing an endpoint.\n\n**Getting started**\n\n1. Import this collection *and* `khela-dekho.postman_environment.json`.\n2. Select the `Khela Dekho` environment (top-right).\n3. Run **Auth > login** \u2014 the token is saved to `{{access_token}}` automatically and every authenticated request picks it up.\n4. Run **Posts > GET /api/posts** once to populate `{{post_id}}`, and **Categories > GET /api/categories** to populate `{{category_id}}`.\n\nSwitch between prod and local by editing `baseUrl` in the environment.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "id": "4aee4646-25ed-5396-938d-9720e412d8dc",
+      "item": [
+        {
+          "name": "Register a new user account",
+          "id": "d7ee5193-ba95-576e-832a-476b5b340623",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Create a new user account with a **username**, **email**, and **password**. Both username and email must be unique. The password is hashed before storage. After registering, call `/api/auth/login` with the same email and password to obtain access and refresh tokens.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"Username\",\n  \"email\": \"tester@example.com\",\n  \"password\": \"securepassword123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "pm.test('auth request succeeded', () => pm.expect(ok).to.be.true);",
+                  "if (ok) {",
+                  "  const data = pm.response.json();",
+                  "  if (data.access_token) {",
+                  "    pm.environment.set('access_token', data.access_token);",
+                  "    console.log('access_token saved to environment');",
+                  "  }",
+                  "  if (data.refresh_token) {",
+                  "    pm.environment.set('refresh_token', data.refresh_token);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login with email and password",
+          "id": "e666a197-5cb9-562b-bad6-9082f2ac5230",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Authenticate a registered user with their **email** and **password**. On success, returns a JWT **access token** and **refresh token** pair. Send the access token as a `Bearer` token in the `Authorization` header to reach protected endpoints; use the refresh token at `/api/auth/refresh` to obtain a new pair without re-entering credentials.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"tester@example.com\",\n  \"password\": \"securepassword123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "pm.test('auth request succeeded', () => pm.expect(ok).to.be.true);",
+                  "if (ok) {",
+                  "  const data = pm.response.json();",
+                  "  if (data.access_token) {",
+                  "    pm.environment.set('access_token', data.access_token);",
+                  "    console.log('access_token saved to environment');",
+                  "  }",
+                  "  if (data.refresh_token) {",
+                  "    pm.environment.set('refresh_token', data.refresh_token);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Refresh",
+          "id": "062a7bcd-b794-57d1-8e95-6d3f11df6b06",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "refresh"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"Refresh Token\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "pm.test('auth request succeeded', () => pm.expect(ok).to.be.true);",
+                  "if (ok) {",
+                  "  const data = pm.response.json();",
+                  "  if (data.access_token) {",
+                  "    pm.environment.set('access_token', data.access_token);",
+                  "    console.log('access_token saved to environment');",
+                  "  }",
+                  "  if (data.refresh_token) {",
+                  "    pm.environment.set('refresh_token', data.refresh_token);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Forget Password",
+          "id": "6419db2f-8cdc-5b0c-998f-84902fca35a2",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/forget-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "forget-password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"tester@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reset Password",
+          "id": "539c417e-d6d0-57cc-919b-9babc87f54a5",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/reset-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "reset-password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"Token\",\n  \"new_password\": \"securepassword123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout user",
+          "id": "e584b651-eee4-521a-b915-d48d3e1993ce",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Logout the user by clearing or invalidating their session/cookies. Since JWT is stateless, the client should discard the tokens."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Baseball Live Scores",
+      "id": "b521a7e1-480f-582a-b296-896eab4e9989",
+      "item": [
+        {
+          "name": "Get Baseball Matches",
+          "id": "bd05ef68-4de0-5146-8c94-d1b57f0f6417",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/baseball/matches",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "baseball",
+                "matches"
+              ]
+            },
+            "description": "Get live, upcoming, and recent MLB baseball matches.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "id": "1cab2563-4bec-50c2-8945-cf24a819a3ec",
+      "item": [
+        {
+          "name": "Get Categories",
+          "id": "6c8eb097-6270-5424-8eb7-448d4e30e63e",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "categories"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "if (ok) {",
+                  "  const data = pm.response.json();",
+                  "  const row = Array.isArray(data) ? data[0] : data;",
+                  "  if (row && row.id) {",
+                  "    pm.environment.set('category_id', row.id);",
+                  "    console.log('category_id set to ' + row.id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Category",
+          "id": "3fc28635-8449-5173-87b2-f7301745c6b0",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/categories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "categories"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"The display name of the category (e.g. Cricket)\",\n  \"slug\": \"The URL-friendly slug of the category (e.g. cricke\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Cricket Live Scores",
+      "id": "7b8ccbbb-e857-54b9-bb46-8a85fa54f8b7",
+      "item": [
+        {
+          "name": "Get Cricket Matches",
+          "id": "5ac4cf79-881d-5441-91e2-1fd805441244",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cricket/matches",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "cricket",
+                "matches"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "type",
+                  "disabled": true,
+                  "description": "Match type filter e.g. t20, odi, test"
+                }
+              ]
+            },
+            "description": "Get live, upcoming, and recent international and domestic cricket matches.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Live Scores",
+      "id": "90ff7bb4-bb81-5237-b73f-55e455aa10d4",
+      "item": [
+        {
+          "name": "Get Matches",
+          "id": "0431d574-472b-5c9c-b30f-73e95749a698",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/livescores/matches",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "livescores",
+                "matches"
+              ],
+              "query": [
+                {
+                  "key": "competition",
+                  "value": "competition",
+                  "disabled": true,
+                  "description": "Competition code like PL, CL, PD, SA, BL1"
+                },
+                {
+                  "key": "status",
+                  "value": "status",
+                  "disabled": true,
+                  "description": "Match status filter e.g. IN_PLAY, FINISHED, SCHEDULED"
+                }
+              ]
+            },
+            "description": "Get live, upcoming, and recent football matches.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Standings",
+          "id": "1658a05e-d23f-51c4-b6a7-b52dd17347b9",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/livescores/standings/{{league_code}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "livescores",
+                "standings",
+                "{{league_code}}"
+              ]
+            },
+            "description": "Get competition standings by league code (e.g., PL for Premier League, PD for La Liga, CL for Champions League, SA for Serie A, BL1 for Bundesliga).",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Posts",
+      "id": "1614d6b6-b9f7-53e3-99bc-6857d7dd1c06",
+      "item": [
+        {
+          "name": "Get Posts",
+          "id": "624e99ab-eb33-5c5a-88e1-fa29a3880c68",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "q",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "tag",
+                  "value": "tag",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "disabled": true,
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const ok = pm.response.code >= 200 && pm.response.code < 300;",
+                  "if (ok) {",
+                  "  const data = pm.response.json();",
+                  "  const row = Array.isArray(data) ? data[0] : data;",
+                  "  if (row && row.id) {",
+                  "    pm.environment.set('post_id', row.id);",
+                  "    console.log('post_id set to ' + row.id);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Post",
+          "id": "adaaf620-9d07-5183-bf61-0ad3862c7441",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"The title of the blog post\",\n  \"content\": \"The main body text of the blog post (must be at least 65 characters)\",\n  \"image_url\": \"https://example.com/media.jpg\",\n  \"video_url\": \"https://example.com/media.jpg\",\n  \"reference_url\": \"https://example.com/media.jpg\",\n  \"category_id\": \"{{category_id}}\",\n  \"tags\": [\n    \"tags\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Drafts",
+          "id": "31b993fb-7f90-5ce7-b12b-1bbdf4dd40e6",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/drafts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts",
+                "drafts"
+              ]
+            },
+            "description": "List the current user's drafts, newest first, for a resume UI."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Draft",
+          "id": "a58a31cb-b8bf-5e02-bbd1-4e0fd412e66a",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/drafts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts",
+                "drafts"
+              ]
+            },
+            "description": "Create an empty draft and return its id. The client saves into it as the\nuser types. Title starts as an empty-ish placeholder because title is NOT NULL;\nit is replaced on the first autosave."
+          },
+          "response": []
+        },
+        {
+          "name": "Save Draft",
+          "id": "b9a0a75a-c821-5289-856a-aefe6af183e5",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/{{post_id}}/draft",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts",
+                "{{post_id}}",
+                "draft"
+              ]
+            },
+            "description": "Autosave target. Permissive: updates only provided fields, no publish-level\nvalidation. Returns a light ack to keep saves fast.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"title\",\n  \"content\": \"content\",\n  \"category_id\": \"{{category_id}}\",\n  \"tags\": [\n    \"tags\"\n  ],\n  \"image_url\": \"https://example.com/media.jpg\",\n  \"video_url\": \"https://example.com/media.jpg\",\n  \"reference_url\": \"https://example.com/media.jpg\",\n  \"client_updated_at\": \"2026-01-01T00:00:00Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Publish Draft",
+          "id": "a6620927-ece6-5360-b661-9a26b1dc791c",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/{{post_id}}/publish",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts",
+                "{{post_id}}",
+                "publish"
+              ]
+            },
+            "description": "Promote a draft to published. Applies strict validation here (not on autosave):\ntitle 10-100 chars, content >= 65 chars, category required."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Related Posts",
+          "id": "cae6be87-4072-5e53-ae3e-bdc9620a0854",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/{{post_id}}/related",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts",
+                "{{post_id}}",
+                "related"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "4",
+                  "disabled": true,
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Content-based related posts (tags/category) with recency-aware fallback.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Posts By Id",
+          "id": "065fccb1-76a5-50d8-add5-f0a5fe2c4070",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/{{post_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts",
+                "{{post_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Post",
+          "id": "a4a96c6d-b230-5900-afc8-5a42b0734351",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/{{post_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts",
+                "{{post_id}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"title This is sample body text for the Khela Dekho API collection. Replace it with real content befo\",\n  \"content\": \"content This is sample body text for the Khela Dekho API collection. Replace it with real content before sending the request against production data.\",\n  \"image_url\": \"https://example.com/media.jpg\",\n  \"video_url\": \"https://example.com/media.jpg\",\n  \"reference_url\": \"https://example.com/media.jpg\",\n  \"category_id\": \"{{category_id}}\",\n  \"tags\": [\n    \"tags\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Post",
+          "id": "307dc1be-fac5-5080-8d80-f6788c86b8ff",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/{{post_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts",
+                "{{post_id}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Posts By Author",
+          "id": "b677c2b9-5267-514c-a4ae-f64571bd332c",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/author/{{author}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts",
+                "author",
+                "{{author}}"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "disabled": true,
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Upload Url",
+          "id": "82606d58-05ed-5dd3-8dea-8c001d1e4683",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/upload-url",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts",
+                "upload-url"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content_type\": \"Content Type\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "React To Post",
+          "id": "df5db423-df02-56da-b35e-fb0f5807e12d",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/{{post_id}}/react",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts",
+                "{{post_id}}",
+                "react"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reaction_type\": \"laugh\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Reaction From Post",
+          "id": "b3ce0e3c-3aac-5331-bc32-3919167b4955",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/{{post_id}}/react",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts",
+                "{{post_id}}",
+                "react"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Tags",
+      "id": "8ea8f92d-6d4d-5e43-8890-ae76d1119762",
+      "item": [
+        {
+          "name": "Get Tags",
+          "id": "0afda889-7bb9-5e42-a240-6ca4a1e9c4d0",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tags",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "tags"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "q",
+                  "disabled": true,
+                  "description": ""
+                }
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "id": "a8b75584-7e07-5a50-a090-39b2a8ec3ff2",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "id": "966e50dd-f5b4-501d-b654-c1590150d261",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update My Profile",
+          "id": "bf40f7d0-23e8-5804-bffd-731c1649d76e",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "me"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"username\",\n  \"full_name\": \"full_name\",\n  \"profile_photo_url\": \"profile_photo_url\",\n  \"location\": \"location\",\n  \"bio\": \"bio\",\n  \"website_url\": \"website_url\",\n  \"twitter_handle\": \"twitter_handle\",\n  \"instagram_handle\": \"instagram_handle\",\n  \"reading_interests\": [\n    \"reading_interests\"\n  ],\n  \"hobbies\": [\n    \"hobbies\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Avatar Upload Url",
+          "id": "d243fdcf-519a-5040-b4e5-3b36400bf593",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/upload-url",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "upload-url"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content_type\": \"Content Type\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Avatar",
+          "id": "d95e2642-8ee6-5dca-8061-aac452ba2a7b",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/avatar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "avatar"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User",
+          "id": "7bbcdd1f-7933-5f1a-9c6c-0d889a9c7684",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{user_id}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{user_id}}"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Set User Role",
+          "id": "cf051a39-097e-5973-a035-c079aad87366",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/{{user_id}}/role?new_role=user",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "{{user_id}}",
+                "role"
+              ],
+              "query": [
+                {
+                  "key": "new_role",
+                  "value": "user",
+                  "disabled": false,
+                  "description": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Webhooks",
+      "id": "f39ec73b-2ac4-5ab5-be16-667111b900d2",
+      "item": [
+        {
+          "name": "Clerk Webhook",
+          "id": "c959adb5-2055-5666-a960-70e311b86b3d",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/webhooks/clerk",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "webhooks",
+                "clerk"
+              ]
+            },
+            "description": "Receives Clerk webhook events (user.created, user.updated, user.deleted)\nand keeps the local PostgreSQL users table synchronized.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://api.kheladekho.dev",
+      "type": "string"
+    }
+  ]
+}
