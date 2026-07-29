@@ -10,37 +10,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app import models
-from app.database import Base, engine, get_db
+from app.config import settings
+from app.database import engine, get_db
 from app.routers import posts, users, auth, categories, tags, livescores, cricket, baseball, webhooks
 
-
-from sqlalchemy import select, text
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
     Application lifespan manager for starting and stopping the application asynchronously.
+    Schema is managed by Alembic (run as a pre-deploy step), not at boot.
     """
-    # Startup: Create tables & apply column migration asynchronously
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS clerk_id VARCHAR(255);"))
-        await conn.execute(text("ALTER TABLE users ALTER COLUMN hashed_password DROP NOT NULL;"))
-        await conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_users_clerk_id ON users (clerk_id);"))
-        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS full_name VARCHAR(100);"))
-        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_photo_url VARCHAR(500);"))
-        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS location VARCHAR(100);"))
-        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT;"))
-        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS website_url VARCHAR(500);"))
-        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS twitter_handle VARCHAR(100);"))
-        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS instagram_handle VARCHAR(100);"))
-        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS reading_interests VARCHAR(50)[];"))
-        await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS hobbies VARCHAR(50)[];"))
-    
-    # Yield control to the application
-    yield 
-
-    # Shutdown: Dispose engine connection pool
+    yield
     await engine.dispose()
 
 
@@ -48,7 +29,7 @@ app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[o.strip() for o in settings.CORS_ORIGINS.split(",")],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

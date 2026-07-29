@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     RESEND_FROM_EMAIL: str = "onboarding@resend.dev"
     FRONTEND_URL: str = "http://localhost:3000"
     RESET_TOKEN_EXPIRE_MINUTES: int = 30
+    CORS_ORIGINS: str = "http://localhost:3000"
     FOOTBALL_DATA_API_KEY: str = ""
     CRICKET_DATA_API_KEY: str = ""
     THESPORTSDB_API_KEY: str = "3"

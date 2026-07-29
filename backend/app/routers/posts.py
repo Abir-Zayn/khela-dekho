@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from typing import Annotated
 import uuid
 from uuid6 import uuid7
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -106,6 +106,7 @@ router = APIRouter(prefix="/api/posts", tags=["Posts"])
 
 @router.get("", response_model=list[PostListResponse])
 async def get_posts(
+    response: Response,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[models.User | None, Depends(get_current_user_optional)],
     q: str | None = None,
@@ -113,6 +114,9 @@ async def get_posts(
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
     offset: Annotated[int, Query(ge=0)] = 0,
 ):
+    # Anonymous reads carry no per-user state, so the CDN/browser may cache them.
+    if current_user is None:
+        response.headers["Cache-Control"] = "public, s-maxage=60, stale-while-revalidate=300"
     stmt = select(models.Post).options(
         selectinload(models.Post.user),
         selectinload(models.Post.category),
@@ -333,6 +337,7 @@ async def publish_draft(
 @router.get("/{post_id}", response_model=PostResponse)
 async def get_posts_by_id(
     post_id: uuid.UUID,
+    response: Response,
     db: Annotated[AsyncSession, Depends(get_db)],
     current_user: Annotated[models.User | None, Depends(get_current_user_optional)],
 ):
@@ -354,6 +359,9 @@ async def get_posts_by_id(
         current_user and can_modify_post(current_user, post)
     ):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+
+    if current_user is None:
+        response.headers["Cache-Control"] = "public, s-maxage=60, stale-while-revalidate=300"
 
     if current_user:
         reaction_res = await db.execute(

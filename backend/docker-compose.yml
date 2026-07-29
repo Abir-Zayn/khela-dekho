@@ -19,14 +19,14 @@ services:
     image: postgres:15-alpine
     restart: always
     environment:
-      POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-secretpassword}
+      POSTGRES_USER: ${DB_USER:-devuser}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-devpassword}
       POSTGRES_DB: ${DB_NAME:-kheladekho}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    expose:
-      # Only expose to other containers in the same network (not the host)
-      - "5432"
+    ports:
+      # Bind to localhost so local (non-docker) backend can reach it during dev
+      - "127.0.0.1:5432:5432"
 
 volumes:
   postgres_data:
