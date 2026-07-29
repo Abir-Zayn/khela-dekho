@@ -3,30 +3,28 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Activity, RefreshCw } from 'lucide-react';
+import { API_BASE_URL } from '@/src/app/configs/queryClient';
 import { FootballMatch, CricketMatch, BaseballMatch } from '../types';
 import { LiveScoreCricketCard } from './LiveScoreCricketCard';
 import { LiveScoreFootballCard } from './LiveScoreFootballCard';
 import { LiveScoreBaseballCard } from './LiveScoreBaseballCard';
 
 async function fetchFootballMatches(): Promise<FootballMatch[]> {
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
-  const res = await fetch(`${backendUrl}/api/v1/livescores/matches`, { cache: 'no-store' });
+  const res = await fetch(`${API_BASE_URL}/api/v1/livescores/matches`, { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch football matches');
   const data = await res.json();
   return data.matches || [];
 }
 
 async function fetchCricketMatches(): Promise<CricketMatch[]> {
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
-  const res = await fetch(`${backendUrl}/api/v1/cricket/matches`, { cache: 'no-store' });
+  const res = await fetch(`${API_BASE_URL}/api/v1/cricket/matches`, { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch cricket matches');
   const data = await res.json();
   return data.data || [];
 }
 
 async function fetchBaseballMatches(): Promise<BaseballMatch[]> {
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
-  const res = await fetch(`${backendUrl}/api/v1/baseball/matches`, { cache: 'no-store' });
+  const res = await fetch(`${API_BASE_URL}/api/v1/baseball/matches`, { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to fetch baseball matches');
   const data = await res.json();
   return data.matches || [];

@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { Calendar, Clock, ArrowRight, Heart, Tag as TagIcon } from 'lucide-react';
 import { Post, LayoutMode } from '../types';
@@ -17,6 +16,19 @@ export interface PostCardProps {
   cardHeight?: string;  // Default: 'h-[400px]' (400px card height)
   className?: string;
   onClick?: () => void;
+}
+
+function getPostImageUrl(post: Post): string | null {
+  if (post.image_url && post.image_url.trim()) {
+    return post.image_url.trim();
+  }
+  if (post.content) {
+    const match = /<img[^>]+src=["']([^"']+)["'][^>]*>/i.exec(post.content);
+    if (match && match[1]) {
+      return match[1].trim();
+    }
+  }
+  return null;
 }
 
 export function PostCard({
@@ -37,22 +49,22 @@ export function PostCard({
   const readTime = post.read_minutes ?? getReadTime(post.content ?? '');
   const excerpt = post.excerpt ?? getExcerpt(post.content ?? '', 90);
   const tags = post.tags || [];
+  const displayImageUrl = getPostImageUrl(post);
 
   return (
     <Link href={`/posts/${post.id}`} className="block h-full w-full">
       <Card
         onClick={onClick}
-        className={`flex flex-col justify-between ${cardWidth} ${cardHeight} ${borderRadius} border-none shadow-none overflow-hidden cursor-pointer mx-auto ${className}`}
+        className={`flex flex-col justify-between ${cardWidth} ${cardHeight} ${borderRadius} border border-border hover:border-terracotta-primary/50 shadow-sm transition-all duration-300 overflow-hidden cursor-pointer mx-auto ${className}`}
       >
       {/* 1. Top Image Container (Reusable imageHeight & resizable radius top) */}
       <div className={`relative w-full ${imageHeight} overflow-hidden bg-gradient-to-br ${gradient} shrink-0`}>
-        {post.image_url ? (
-          <Image
-            src={post.image_url}
+        {displayImageUrl ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={displayImageUrl}
             alt={post.title}
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
-            className="object-cover"
+            className="w-full h-full object-cover"
           />
         ) : (
           <div className="w-full h-full p-4 flex flex-col justify-between bg-gradient-to-br from-red-600/20 via-zinc-900 to-zinc-950">

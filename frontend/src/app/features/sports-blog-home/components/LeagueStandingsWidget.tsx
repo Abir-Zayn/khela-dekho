@@ -33,9 +33,10 @@ interface StandingsData {
   }>;
 }
 
+import { API_BASE_URL } from '@/src/app/configs/queryClient';
+
 async function fetchLeagueStandings(leagueCode: string): Promise<StandingsData> {
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000';
-  const res = await fetch(`${backendUrl}/api/v1/livescores/standings/${leagueCode}`, {
+  const res = await fetch(`${API_BASE_URL}/api/v1/livescores/standings/${leagueCode}`, {
     cache: 'no-store'
   });
   if (!res.ok) {
