@@ -7,7 +7,6 @@ import {
   ArrowLeft,
   Share2,
   Check,
-  Trophy,
   AlertTriangle,
   SquarePen,
 } from 'lucide-react';
@@ -22,6 +21,7 @@ import { WrittenByAuthorCard } from './components/written-by-author-card';
 import { PostArticleHeader } from './components/post-article-header';
 import { PostArticleContent } from './components/post-article-content';
 import { PostReactionsBar } from './components/post-reactions-bar';
+import { RelatedPosts } from './components/related-posts';
 import { BrandLogo } from '../../components/BrandLogo';
 
 interface VisitingPostPageProps {
@@ -221,8 +221,10 @@ export default function VisitingPostPage({ params }: VisitingPostPageProps) {
           onReact={(type) => reactionMutation.mutate(type)}
           onShare={handleShare}
         />
+        {/* 4. Related Posts Recommendations Component */}
+        <RelatedPosts postId={post.id} />
 
-        {/* 4. Written By Author Info Component */}
+        {/* 5. Written By Author Info Component */}
         <WrittenByAuthorCard author={post.author} />
 
         {/* Bottom Back Button */}

@@ -16,6 +16,7 @@ import { listCategories } from '../actions/list_categories';
 import { listTags } from '../actions/list_tags';
 import type { Category, Tag } from '../types';
 import type { Post } from '../../sports-blog-home/types';
+import { Textarea } from '@/src/components/ui/textarea';
 
 const DEFAULT_COVER_IMAGE =
   'https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=1200&q=80';
@@ -264,18 +265,18 @@ export default function EditPostRoot({ postId }: EditPostRootProps) {
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
         {/* Story Title Input */}
         <div className="mb-6">
-          <textarea
+          <Textarea
             ref={titleTextareaRef}
             placeholder="Title"
             value={title}
             maxLength={100}
-            onChange={(e) => {
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
               setTitle(e.target.value);
               e.target.style.height = 'auto';
               e.target.style.height = `${e.target.scrollHeight}px`;
             }}
             rows={1}
-            className="w-full text-4xl sm:text-5xl font-black placeholder:text-muted-foreground/40 bg-transparent text-foreground border-none outline-none tracking-tight resize-none overflow-hidden font-serif"
+            className="w-full text-4xl sm:text-5xl font-black placeholder:text-muted-foreground/40 bg-transparent text-foreground border-none outline-none focus-visible:ring-0 focus-visible:border-none focus-visible:outline-none tracking-tight resize-none overflow-hidden font-serif min-h-0 p-0 shadow-none"
           />
         </div>
 

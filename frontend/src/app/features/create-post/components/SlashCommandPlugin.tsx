@@ -81,6 +81,17 @@ export function SlashCommandPlugin() {
     e.preventDefault();
     if (!activeType || !url.trim()) return;
 
+    // Extract all URLs (split by newlines, commas, or whitespace)
+    const rawItems = url
+      .split(/[\n,\s]+/)
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+
+    const urlsToInsert =
+      activeType === 'image' && rawItems.length > 1
+        ? rawItems
+        : [url.trim()];
+
     editor.focus(() => {
       editor.update(() => {
         let selection = $getSelection();
@@ -90,25 +101,35 @@ export function SlashCommandPlugin() {
           selection = $getSelection();
         }
 
-        const mediaNode = $createMediaBlockNode(activeType, url.trim(), title.trim());
-        const p = $createParagraphNode();
+        const nodesToInsert: Array<ReturnType<typeof $createMediaBlockNode> | ReturnType<typeof $createParagraphNode>> = [];
+        for (const singleUrl of urlsToInsert) {
+          nodesToInsert.push($createMediaBlockNode(activeType, singleUrl, title.trim()));
+          nodesToInsert.push($createParagraphNode());
+        }
 
         if ($isRangeSelection(selection)) {
           const anchorNode = selection.anchor.getNode();
           const topLevelElement = anchorNode.getTopLevelElementOrThrow();
 
           if (topLevelElement.getTextContent().trim() === '' || topLevelElement.getTextContent().trim() === '/') {
-            topLevelElement.replace(mediaNode);
-            mediaNode.insertAfter(p);
+            topLevelElement.replace(nodesToInsert[0]);
+            let current = nodesToInsert[0];
+            for (let i = 1; i < nodesToInsert.length; i++) {
+              current.insertAfter(nodesToInsert[i]);
+              current = nodesToInsert[i];
+            }
           } else {
-            selection.insertNodes([mediaNode, p]);
+            selection.insertNodes(nodesToInsert);
           }
-          p.select();
+          const lastNode = nodesToInsert[nodesToInsert.length - 1];
+          if (lastNode && 'select' in lastNode && typeof (lastNode as { select?: () => void }).select === 'function') {
+            (lastNode as { select: () => void }).select();
+          }
         } else {
           const root = $getRoot();
-          root.append(mediaNode);
-          root.append(p);
-          p.select();
+          for (const node of nodesToInsert) {
+            root.append(node);
+          }
         }
       });
     });
@@ -161,7 +182,7 @@ export function SlashCommandPlugin() {
         createPortal(
           <div
             style={{ top: `${inputPosition.top}px`, left: `${inputPosition.left}px` }}
-            className="fixed z-50 min-w-[280px] max-w-[340px] bg-popover/95 backdrop-blur-md border border-border rounded-2xl p-2.5 shadow-2xl text-popover-foreground animate-in fade-in zoom-in-95 duration-100 transition-colors duration-200"
+            className="fixed z-50 min-w-[300px] max-w-[380px] bg-popover/95 backdrop-blur-md border border-border rounded-2xl p-3 shadow-2xl text-popover-foreground animate-in fade-in zoom-in-95 duration-100 transition-colors duration-200"
           >
             <form onSubmit={handleSubmitUrl} className="space-y-2">
               <div className="flex items-center justify-between text-xs font-bold text-terracotta-primary px-1">
@@ -169,7 +190,7 @@ export function SlashCommandPlugin() {
                   {activeType === 'image' && <ImageIcon size={14} />}
                   {activeType === 'video' && <Video size={14} />}
                   {activeType === 'reference' && <LinkIcon size={14} />}
-                  Add {activeType}
+                  {activeType === 'image' ? 'Add Photo URL(s)' : `Add ${activeType}`}
                 </span>
                 <button
                   type="button"
@@ -193,25 +214,35 @@ export function SlashCommandPlugin() {
                 />
               )}
 
-              <div className="flex items-center gap-1.5">
-                <input
-                  type="url"
-                  placeholder={
-                    activeType === 'image'
-                      ? 'Paste image URL...'
-                      : activeType === 'video'
-                      ? 'Paste YouTube/video URL...'
-                      : 'Paste reference link...'
-                  }
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  autoFocus
-                  required
-                  className="w-full bg-card border border-border text-foreground placeholder:text-muted-foreground/60 rounded-lg py-1.5 px-2.5 text-xs outline-none focus:border-terracotta-primary"
-                />
+              <div className="flex items-start gap-1.5">
+                {activeType === 'image' ? (
+                  <textarea
+                    placeholder="Paste photo URL(s) - add multiple URLs separated by newlines or commas..."
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    rows={3}
+                    autoFocus
+                    required
+                    className="w-full bg-card border border-border text-foreground placeholder:text-muted-foreground/60 rounded-lg py-1.5 px-2.5 text-xs outline-none focus:border-terracotta-primary resize-none font-mono"
+                  />
+                ) : (
+                  <input
+                    type="url"
+                    placeholder={
+                      activeType === 'video'
+                        ? 'Paste YouTube/video URL...'
+                        : 'Paste reference link...'
+                    }
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    autoFocus
+                    required
+                    className="w-full bg-card border border-border text-foreground placeholder:text-muted-foreground/60 rounded-lg py-1.5 px-2.5 text-xs outline-none focus:border-terracotta-primary"
+                  />
+                )}
                 <button
                   type="submit"
-                  className="bg-terracotta-primary hover:bg-terracotta-dark text-white font-bold p-2 rounded-lg text-xs transition-colors cursor-pointer shrink-0"
+                  className="bg-terracotta-primary hover:bg-terracotta-dark text-white font-bold p-2 rounded-lg text-xs transition-colors cursor-pointer shrink-0 mt-0.5"
                 >
                   <CornerDownLeft size={14} />
                 </button>

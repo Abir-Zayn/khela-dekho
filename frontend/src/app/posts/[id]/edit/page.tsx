@@ -1,4 +1,4 @@
-import EditPostRoot from '../../features/create-post/components/EditPostRoot';
+import EditPostRoot from '@/src/app/features/create-post/components/EditPostRoot';
 
 interface EditPostPageProps {
   params: Promise<{ id: string }>;

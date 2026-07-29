@@ -172,10 +172,10 @@ export const LiveScoreTicker: React.FC = () => {
               <button
                 key={tab.id}
                 onClick={() => setSelectedLeague(tab.id)}
-                className={`px-2.5 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                className={`px-3 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                   selectedLeague === tab.id
-                    ? 'bg-zinc-700 text-white'
-                    : 'bg-zinc-800/60 text-zinc-400 hover:bg-zinc-800 border border-zinc-700/50'
+                    ? 'bg-terracotta-primary text-white shadow-sm'
+                    : 'bg-muted/80 text-muted-foreground hover:bg-muted hover:text-foreground border border-border'
                 }`}
               >
                 {tab.label}
@@ -192,10 +192,10 @@ export const LiveScoreTicker: React.FC = () => {
               <button
                 key={tab.id}
                 onClick={() => setSelectedLeague(tab.id)}
-                className={`px-2.5 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                className={`px-3 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                   selectedLeague === tab.id
-                    ? 'bg-zinc-700 text-white'
-                    : 'bg-zinc-800/60 text-zinc-400 hover:bg-zinc-800 border border-zinc-700/50'
+                    ? 'bg-terracotta-primary text-white shadow-sm'
+                    : 'bg-muted/80 text-muted-foreground hover:bg-muted hover:text-foreground border border-border'
                 }`}
               >
                 {tab.label}
@@ -209,10 +209,10 @@ export const LiveScoreTicker: React.FC = () => {
               <button
                 key={tab.id}
                 onClick={() => setSelectedLeague(tab.id)}
-                className={`px-2.5 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                className={`px-3 py-1 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                   selectedLeague === tab.id
-                    ? 'bg-zinc-700 text-white'
-                    : 'bg-zinc-800/60 text-zinc-400 hover:bg-zinc-800 border border-zinc-700/50'
+                    ? 'bg-terracotta-primary text-white shadow-sm'
+                    : 'bg-muted/80 text-muted-foreground hover:bg-muted hover:text-foreground border border-border'
                 }`}
               >
                 {tab.label}
@@ -223,11 +223,11 @@ export const LiveScoreTicker: React.FC = () => {
           <button
             onClick={handleRefresh}
             title="Refresh Scores"
-            className="p-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 rounded-xl transition-all ml-1 border border-zinc-700/50 cursor-pointer"
+            className="p-1.5 bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground rounded-xl transition-all ml-1 border border-border cursor-pointer"
           >
             <RefreshCw
               size={14}
-              className={(isFetchingFb || isFetchingCr || isFetchingBb) ? 'animate-spin text-red-400' : ''}
+              className={(isFetchingFb || isFetchingCr || isFetchingBb) ? 'animate-spin text-terracotta-primary' : ''}
             />
           </button>
         </div>
@@ -240,15 +240,15 @@ export const LiveScoreTicker: React.FC = () => {
         isLoadingCr ? (
           <div className="flex gap-3 overflow-x-auto py-2">
             {[1, 2, 3].map((n) => (
-              <div key={n} className="min-w-[280px] h-32 bg-zinc-800/50 rounded-xl animate-pulse border border-zinc-800" />
+              <div key={n} className="min-w-[280px] h-32 bg-muted/50 rounded-xl animate-pulse border border-border" />
             ))}
           </div>
         ) : filteredCricket.length === 0 ? (
-          <div className="py-6 text-center text-xs text-zinc-500 italic">
+          <div className="py-6 text-center text-xs text-muted-foreground italic">
             No cricket matches available for this filter right now.
           </div>
         ) : (
-          <div className="flex gap-3 overflow-x-auto scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent py-1">
+          <div className="flex gap-3 overflow-x-auto scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent py-1">
             {filteredCricket.map((match) => (
               <LiveScoreCricketCard key={match.id} match={match} />
             ))}
@@ -261,15 +261,15 @@ export const LiveScoreTicker: React.FC = () => {
         isLoadingFb ? (
           <div className="flex gap-3 overflow-x-auto py-2">
             {[1, 2, 3].map((n) => (
-              <div key={n} className="min-w-[250px] h-28 bg-zinc-800/50 rounded-xl animate-pulse border border-zinc-800" />
+              <div key={n} className="min-w-[250px] h-28 bg-muted/50 rounded-xl animate-pulse border border-border" />
             ))}
           </div>
         ) : filteredFootball.length === 0 ? (
-          <div className="py-6 text-center text-xs text-zinc-500 italic">
+          <div className="py-6 text-center text-xs text-muted-foreground italic">
             No football matches found for this filter right now.
           </div>
         ) : (
-          <div className="flex gap-3 overflow-x-auto scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent py-1">
+          <div className="flex gap-3 overflow-x-auto scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent py-1">
             {filteredFootball.map((match) => (
               <LiveScoreFootballCard key={match.id} match={match} />
             ))}
@@ -282,15 +282,15 @@ export const LiveScoreTicker: React.FC = () => {
         isLoadingBb ? (
           <div className="flex gap-3 overflow-x-auto py-2">
             {[1, 2, 3].map((n) => (
-              <div key={n} className="min-w-[260px] h-28 bg-zinc-800/50 rounded-xl animate-pulse border border-zinc-800" />
+              <div key={n} className="min-w-[260px] h-28 bg-muted/50 rounded-xl animate-pulse border border-border" />
             ))}
           </div>
         ) : filteredBaseball.length === 0 ? (
-          <div className="py-6 text-center text-xs text-zinc-500 italic">
+          <div className="py-6 text-center text-xs text-muted-foreground italic">
             No baseball matches found right now.
           </div>
         ) : (
-          <div className="flex gap-3 overflow-x-auto scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent py-1">
+          <div className="flex gap-3 overflow-x-auto scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent py-1">
             {filteredBaseball.map((match) => (
               <LiveScoreBaseballCard key={match.id} match={match} />
             ))}
