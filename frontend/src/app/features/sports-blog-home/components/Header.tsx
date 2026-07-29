@@ -44,17 +44,17 @@ export function Header({ authors, categories = [] }: HeaderProps) {
 
       {/* Main Header Container */}
       <div className="max-w-[2000px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div className="flex flex-row items-center justify-between gap-4">
           {/* Logo Brand Area (Text Only) */}
           <BrandLogo size="md" showSubtitle={true} />
 
           {/* Account Info */}
-          <div className="hidden lg:flex items-center border-l border-border pl-6 text-sm text-muted-foreground gap-4">
+          <div className="flex items-center text-sm text-muted-foreground gap-2.5 sm:gap-4 md:border-l md:border-border md:pl-6">
             <Link
               href="/create-post"
-              className="flex items-center gap-2 bg-background hover:bg-muted text-foreground border border-border px-4 py-2 rounded-xl text-sm font-semibold transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 sm:gap-2 bg-background hover:bg-muted text-foreground border border-border px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold transition-colors cursor-pointer"
             >
-              <SquarePen size={16} className="text-terracotta-primary" />
+              <SquarePen size={16} className="text-terracotta-primary shrink-0" />
               <span>Write</span>
             </Link>
 

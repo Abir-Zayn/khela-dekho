@@ -339,15 +339,15 @@ export default function CreatePostRoot() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white selection:bg-red-500 selection:text-white font-sans antialiased">
+    <div className="min-h-screen bg-background text-foreground selection:bg-terracotta-primary selection:text-white font-sans antialiased">
       {/* Top Header Navigation */}
-      <header className="sticky top-0 z-30 bg-zinc-950/90 backdrop-blur border-b border-zinc-900 px-4 sm:px-8 py-3.5">
+      <header className="sticky top-0 z-30 bg-card/90 backdrop-blur border-b border-border px-4 sm:px-8 py-3.5 transition-colors duration-200">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
           {/* Brand & Draft Info */}
           <div className="flex items-center gap-4">
             <Link
               href="/"
-              className="p-2 rounded-full hover:bg-zinc-900 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              className="p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               title="Back to feed"
             >
               <ArrowLeft size={20} />
@@ -355,8 +355,8 @@ export default function CreatePostRoot() {
 
             <div className="flex items-center gap-3">
               <BrandLogo size="sm" showSubtitle={false} href="/" />
-              <div className="hidden sm:block border-l border-zinc-800 pl-3">
-                <span className="text-xs font-bold uppercase tracking-wider text-zinc-400 block">
+              <div className="hidden sm:block border-l border-border pl-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
                   Draft in {user?.full_name || user?.username || 'Khela Dekho'}
                 </span>
                 <SaveIndicator status={saveStatus} />
@@ -370,7 +370,7 @@ export default function CreatePostRoot() {
               type="button"
               onClick={handlePublishDirect}
               disabled={isPublishing}
-              className="bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold text-xs uppercase tracking-widest px-5 py-2.5 rounded-full transition-all shadow-md shadow-red-950/40 flex items-center gap-2 cursor-pointer"
+              className="bg-terracotta-primary hover:bg-terracotta-dark disabled:opacity-50 text-white font-bold text-xs uppercase tracking-widest px-5 py-2.5 rounded-full transition-all shadow-md flex items-center gap-2 cursor-pointer"
             >
               {isPublishing ? (
                 <>
@@ -392,10 +392,10 @@ export default function CreatePostRoot() {
                     alt={user.username}
                     width={32}
                     height={32}
-                    className="w-8 h-8 rounded-full object-cover border border-zinc-800"
+                    className="w-8 h-8 rounded-full object-cover border border-border"
                   />
                 ) : (
-                  <span className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-xs text-white uppercase">
+                  <span className="w-8 h-8 rounded-full bg-terracotta-primary border border-border flex items-center justify-center font-bold text-xs text-white uppercase">
                     {(user.full_name || user.username).charAt(0)}
                   </span>
                 )}
@@ -405,7 +405,7 @@ export default function CreatePostRoot() {
         </div>
       </header>
 
-      {/* Main Medium Writing Canvas */}
+      {/* Main Writing Canvas */}
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
         {/* Story Title Input */}
         <div className="mb-6">
@@ -419,7 +419,7 @@ export default function CreatePostRoot() {
               e.target.style.height = `${e.target.scrollHeight}px`;
             }}
             rows={1}
-            className="w-full text-4xl sm:text-5xl font-black placeholder:text-zinc-700 bg-transparent text-white border-none outline-none tracking-tight resize-none overflow-hidden font-serif"
+            className="w-full text-4xl sm:text-5xl font-black placeholder:text-muted-foreground/40 bg-transparent text-foreground border-none outline-none tracking-tight resize-none overflow-hidden font-serif"
           />
         </div>
 
@@ -453,7 +453,7 @@ function SaveIndicator({ status }: { status: SaveStatus }) {
   if (status === 'idle') return null;
 
   const map: Record<Exclude<SaveStatus, 'idle'>, { icon: React.ReactNode; text: string; className: string }> = {
-    saving: { icon: <Loader2 size={11} className="animate-spin" />, text: 'Saving…', className: 'text-zinc-500' },
+    saving: { icon: <Loader2 size={11} className="animate-spin" />, text: 'Saving…', className: 'text-muted-foreground' },
     saved: { icon: <Check size={11} />, text: 'Saved', className: 'text-emerald-500' },
     offline: { icon: <CloudOff size={11} />, text: 'Offline — saved on device', className: 'text-amber-500' },
     error: { icon: <AlertCircle size={11} />, text: 'Save failed', className: 'text-red-500' },

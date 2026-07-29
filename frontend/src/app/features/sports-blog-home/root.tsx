@@ -15,7 +15,14 @@ import { Post } from './types';
 
 const PAGE_SIZE = 20;
 
-export default function SportsBlogHome() {
+interface SportsBlogHomeProps {
+  // Server-prefetched first page (see app/page.tsx). Only seeds the default,
+  // no-filter query — once the user searches/filters, React Query fetches
+  // fresh as usual.
+  initialPosts?: Post[];
+}
+
+export default function SportsBlogHome({ initialPosts }: SportsBlogHomeProps) {
   // Zustand State
   const {
     searchQuery,
@@ -52,6 +59,11 @@ export default function SportsBlogHome() {
     // A short page means the server has no more rows.
     getNextPageParam: (lastPage: Post[], allPages: Post[][]) =>
       lastPage.length < PAGE_SIZE ? undefined : allPages.length * PAGE_SIZE,
+    // Seed with the server-prefetched page so the default feed paints
+    // immediately; only applies while the query key matches (no search yet).
+    ...(initialPosts && debouncedQuery === ''
+      ? { initialData: { pages: [initialPosts], pageParams: [0] } }
+      : {}),
   });
 
   const posts = useMemo<Post[]>(() => data?.pages.flat() ?? [], [data]);

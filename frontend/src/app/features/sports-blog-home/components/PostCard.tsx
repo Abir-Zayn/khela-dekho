@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { Calendar, Clock, ArrowRight, Heart, Tag as TagIcon } from 'lucide-react';
 import { Post, LayoutMode } from '../types';
@@ -46,11 +47,12 @@ export function PostCard({
       {/* 1. Top Image Container (Reusable imageHeight & resizable radius top) */}
       <div className={`relative w-full ${imageHeight} overflow-hidden bg-gradient-to-br ${gradient} shrink-0`}>
         {post.image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={post.image_url}
             alt={post.title}
-            className="w-full h-full object-cover"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
+            className="object-cover"
           />
         ) : (
           <div className="w-full h-full p-4 flex flex-col justify-between bg-gradient-to-br from-red-600/20 via-zinc-900 to-zinc-950">

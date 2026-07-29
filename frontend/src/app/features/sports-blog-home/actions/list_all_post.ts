@@ -1,6 +1,4 @@
-'use server';
-
-import { apiFetch } from '../../../configs/apiClient';
+import { API_BASE_URL } from '../../../configs/queryClient';
 import type { Post } from '../types';
 
 export interface ListPostsParams {
@@ -10,6 +8,10 @@ export interface ListPostsParams {
   offset?: number;
 }
 
+// Public feed read: called directly from the browser (no Next.js server action
+// hop) since this endpoint needs no auth and the backend now sets its own
+// CORS + Cache-Control headers. Keep `apiFetch`/server actions for mutations
+// and authenticated reads, where the httpOnly cookie must stay server-side.
 export async function listAllPosts(params?: ListPostsParams): Promise<Post[]> {
   const search = new URLSearchParams();
   if (params?.q) search.set('q', params.q);
@@ -18,5 +20,9 @@ export async function listAllPosts(params?: ListPostsParams): Promise<Post[]> {
   if (params?.offset != null) search.set('offset', String(params.offset));
   const qs = search.toString();
 
-  return apiFetch<Post[]>(`/api/posts${qs ? `?${qs}` : ''}`);
+  const res = await fetch(`${API_BASE_URL}/api/posts${qs ? `?${qs}` : ''}`);
+  if (!res.ok) {
+    throw new Error(`Request failed with status ${res.status}`);
+  }
+  return res.json();
 }

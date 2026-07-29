@@ -188,7 +188,7 @@ export function FloatingToolbarPlugin() {
         left: `${position.left}px`,
         transform: 'translateX(-50%)',
       }}
-      className="fixed z-50 bg-zinc-900/95 backdrop-blur-md border border-zinc-700/80 rounded-full px-3 py-1.5 flex items-center gap-1 shadow-2xl animate-in fade-in zoom-in-95 duration-150 select-none"
+      className="fixed z-50 bg-popover/95 backdrop-blur-md border border-border rounded-full px-3 py-1.5 flex items-center gap-1 shadow-2xl animate-in fade-in zoom-in-95 duration-150 select-none text-popover-foreground transition-colors duration-200"
     >
       {/* Headings */}
       <button
@@ -198,7 +198,7 @@ export function FloatingToolbarPlugin() {
           formatHeading('h1');
         }}
         className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-          blockType === 'h1' ? 'bg-zinc-800 text-amber-400' : 'text-zinc-400 hover:text-white'
+          blockType === 'h1' ? 'bg-terracotta-primary/20 text-terracotta-primary font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted'
         }`}
         title="Heading 1"
       >
@@ -212,14 +212,14 @@ export function FloatingToolbarPlugin() {
           formatHeading('h2');
         }}
         className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-          blockType === 'h2' ? 'bg-zinc-800 text-amber-400' : 'text-zinc-400 hover:text-white'
+          blockType === 'h2' ? 'bg-terracotta-primary/20 text-terracotta-primary font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted'
         }`}
         title="Heading 2"
       >
         <Heading2 size={16} />
       </button>
 
-      <div className="w-[1px] h-4 bg-zinc-700 mx-0.5" />
+      <div className="w-[1px] h-4 bg-border mx-0.5" />
 
       {/* Formatting */}
       <button
@@ -229,7 +229,7 @@ export function FloatingToolbarPlugin() {
           editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold');
         }}
         className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-          textFormat.isBold ? 'bg-zinc-800 text-amber-400' : 'text-zinc-400 hover:text-white'
+          textFormat.isBold ? 'bg-terracotta-primary/20 text-terracotta-primary font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted'
         }`}
         title="Bold"
       >
@@ -243,7 +243,7 @@ export function FloatingToolbarPlugin() {
           editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic');
         }}
         className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-          textFormat.isItalic ? 'bg-zinc-800 text-amber-400' : 'text-zinc-400 hover:text-white'
+          textFormat.isItalic ? 'bg-terracotta-primary/20 text-terracotta-primary font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted'
         }`}
         title="Italic"
       >
@@ -257,7 +257,7 @@ export function FloatingToolbarPlugin() {
           editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'underline');
         }}
         className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-          textFormat.isUnderline ? 'bg-zinc-800 text-amber-400' : 'text-zinc-400 hover:text-white'
+          textFormat.isUnderline ? 'bg-terracotta-primary/20 text-terracotta-primary font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted'
         }`}
         title="Underline"
       >
@@ -271,7 +271,7 @@ export function FloatingToolbarPlugin() {
           editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'strikethrough');
         }}
         className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-          textFormat.isStrikethrough ? 'bg-zinc-800 text-amber-400' : 'text-zinc-400 hover:text-white'
+          textFormat.isStrikethrough ? 'bg-terracotta-primary/20 text-terracotta-primary font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted'
         }`}
         title="Strikethrough"
       >
@@ -285,14 +285,14 @@ export function FloatingToolbarPlugin() {
           editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'code');
         }}
         className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-          textFormat.isCode ? 'bg-zinc-800 text-amber-400' : 'text-zinc-400 hover:text-white'
+          textFormat.isCode ? 'bg-terracotta-primary/20 text-terracotta-primary font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted'
         }`}
         title="Code"
       >
         <Code size={16} />
       </button>
 
-      <div className="w-[1px] h-4 bg-zinc-700 mx-0.5" />
+      <div className="w-[1px] h-4 bg-border mx-0.5" />
 
       {/* Quote / Lists */}
       <button
@@ -302,7 +302,7 @@ export function FloatingToolbarPlugin() {
           formatQuote();
         }}
         className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-          blockType === 'quote' ? 'bg-zinc-800 text-amber-400' : 'text-zinc-400 hover:text-white'
+          blockType === 'quote' ? 'bg-terracotta-primary/20 text-terracotta-primary font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted'
         }`}
         title="Quote"
       >
@@ -316,7 +316,7 @@ export function FloatingToolbarPlugin() {
           formatBulletList();
         }}
         className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-          blockType === 'ul' ? 'bg-zinc-800 text-amber-400' : 'text-zinc-400 hover:text-white'
+          blockType === 'ul' ? 'bg-terracotta-primary/20 text-terracotta-primary font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted'
         }`}
         title="Bullet List"
       >
@@ -330,7 +330,7 @@ export function FloatingToolbarPlugin() {
           formatNumberedList();
         }}
         className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-          blockType === 'ol' ? 'bg-zinc-800 text-amber-400' : 'text-zinc-400 hover:text-white'
+          blockType === 'ol' ? 'bg-terracotta-primary/20 text-terracotta-primary font-bold' : 'text-muted-foreground hover:text-foreground hover:bg-muted'
         }`}
         title="Numbered List"
       >

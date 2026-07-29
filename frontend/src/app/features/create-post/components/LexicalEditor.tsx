@@ -111,10 +111,10 @@ export function LexicalEditor({ onChange, placeholder = "Type / for actions, or 
         <div className="relative">
           <RichTextPlugin
             contentEditable={
-              <ContentEditable className="min-h-[400px] outline-none text-zinc-200 text-lg leading-relaxed focus:outline-none py-2 [&_img]:rounded-2xl [&_img]:border [&_img]:border-zinc-800 [&_iframe]:w-full [&_iframe]:aspect-video [&_iframe]:rounded-2xl [&_iframe]:border [&_iframe]:border-zinc-800 [&_video]:w-full [&_video]:rounded-2xl [&_blockquote]:border-l-4 [&_blockquote]:border-amber-500 [&_blockquote]:bg-zinc-900/80 [&_blockquote]:p-4 [&_blockquote]:rounded-r-2xl" />
+              <ContentEditable className="min-h-[400px] outline-none text-foreground text-lg leading-relaxed focus:outline-none py-2 [&_img]:rounded-2xl [&_img]:border [&_img]:border-border [&_iframe]:w-full [&_iframe]:aspect-video [&_iframe]:rounded-2xl [&_iframe]:border [&_iframe]:border-border [&_video]:w-full [&_video]:rounded-2xl [&_blockquote]:border-l-4 [&_blockquote]:border-terracotta-primary [&_blockquote]:bg-muted [&_blockquote]:p-4 [&_blockquote]:rounded-r-2xl" />
             }
             placeholder={
-              <div className="absolute top-2 left-0 text-zinc-600 text-lg pointer-events-none select-none italic font-serif">
+              <div className="absolute top-2 left-0 text-muted-foreground/50 text-lg pointer-events-none select-none italic font-serif">
                 {placeholder}
               </div>
             }

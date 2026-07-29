@@ -174,10 +174,10 @@ export default function EditPostRoot({ postId }: EditPostRootProps) {
 
   if (isLoadingPost) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center p-6">
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-6">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 size={32} className="animate-spin text-red-500" />
-          <p className="text-sm font-medium text-zinc-400">Loading story for editing...</p>
+          <Loader2 size={32} className="animate-spin text-terracotta-primary" />
+          <p className="text-sm font-medium text-muted-foreground">Loading story for editing...</p>
         </div>
       </div>
     );
@@ -185,16 +185,16 @@ export default function EditPostRoot({ postId }: EditPostRootProps) {
 
   if (isPostError || !postData) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-white flex items-center justify-center p-6">
-        <div className="max-w-md w-full bg-zinc-900 border border-zinc-800 rounded-3xl p-8 text-center space-y-4 shadow-2xl">
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-6">
+        <div className="max-w-md w-full bg-card border border-border rounded-3xl p-8 text-center space-y-4 shadow-2xl">
           <AlertCircle size={48} className="text-red-500 mx-auto" />
           <h2 className="text-xl font-bold">Story Not Found</h2>
-          <p className="text-xs text-zinc-400 leading-relaxed">
+          <p className="text-xs text-muted-foreground leading-relaxed">
             {postError instanceof Error ? postError.message : 'The article you are trying to edit could not be loaded.'}
           </p>
           <Link
             href="/"
-            className="inline-flex items-center justify-center gap-2 w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 px-5 rounded-xl text-xs transition-colors"
+            className="inline-flex items-center justify-center gap-2 w-full bg-terracotta-primary hover:bg-terracotta-dark text-white font-bold py-2.5 px-5 rounded-xl text-xs transition-colors"
           >
             <ArrowLeft size={16} /> Return to Home
           </Link>
@@ -204,15 +204,15 @@ export default function EditPostRoot({ postId }: EditPostRootProps) {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white selection:bg-red-500 selection:text-white font-sans antialiased">
+    <div className="min-h-screen bg-background text-foreground selection:bg-terracotta-primary selection:text-white font-sans antialiased">
       {/* Top Header Navigation */}
-      <header className="sticky top-0 z-30 bg-zinc-950/90 backdrop-blur border-b border-zinc-900 px-4 sm:px-8 py-3.5">
+      <header className="sticky top-0 z-30 bg-card/90 backdrop-blur border-b border-border px-4 sm:px-8 py-3.5 transition-colors duration-200">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
           {/* Brand & Context */}
           <div className="flex items-center gap-4">
             <Link
               href={`/posts/${postId}`}
-              className="p-2 rounded-full hover:bg-zinc-900 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              className="p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               title="Cancel editing"
             >
               <ArrowLeft size={20} />
@@ -220,11 +220,11 @@ export default function EditPostRoot({ postId }: EditPostRootProps) {
 
             <div className="flex items-center gap-3">
               <BrandLogo size="sm" showSubtitle={false} href="/" />
-              <div className="hidden sm:block border-l border-zinc-800 pl-3">
-                <span className="text-xs font-bold uppercase tracking-wider text-amber-500 block">
+              <div className="hidden sm:block border-l border-border pl-3">
+                <span className="text-xs font-bold uppercase tracking-wider text-terracotta-primary block">
                   Editing Story
                 </span>
-                <span className="text-[10px] text-zinc-400 font-medium">
+                <span className="text-[10px] text-muted-foreground font-medium">
                   {user?.full_name || user?.username || 'Author'}
                 </span>
               </div>
@@ -235,7 +235,7 @@ export default function EditPostRoot({ postId }: EditPostRootProps) {
           <div className="flex items-center gap-4">
             <Link
               href={`/posts/${postId}`}
-              className="hidden sm:block text-xs font-semibold text-zinc-400 hover:text-white transition-colors"
+              className="hidden sm:block text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
             >
               Cancel
             </Link>
@@ -244,7 +244,7 @@ export default function EditPostRoot({ postId }: EditPostRootProps) {
               type="button"
               onClick={handleSaveChanges}
               disabled={isSaving}
-              className="bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold text-xs uppercase tracking-widest px-5 py-2.5 rounded-full transition-all shadow-md shadow-red-950/40 flex items-center gap-2 cursor-pointer"
+              className="bg-terracotta-primary hover:bg-terracotta-dark disabled:opacity-50 text-white font-bold text-xs uppercase tracking-widest px-5 py-2.5 rounded-full transition-all shadow-md flex items-center gap-2 cursor-pointer"
             >
               {isSaving ? (
                 <>
@@ -260,7 +260,7 @@ export default function EditPostRoot({ postId }: EditPostRootProps) {
         </div>
       </header>
 
-      {/* Main Medium Editing Canvas */}
+      {/* Main Writing Canvas */}
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
         {/* Story Title Input */}
         <div className="mb-6">
@@ -275,7 +275,7 @@ export default function EditPostRoot({ postId }: EditPostRootProps) {
               e.target.style.height = `${e.target.scrollHeight}px`;
             }}
             rows={1}
-            className="w-full text-4xl sm:text-5xl font-black placeholder:text-zinc-700 bg-transparent text-white border-none outline-none tracking-tight resize-none overflow-hidden font-serif"
+            className="w-full text-4xl sm:text-5xl font-black placeholder:text-muted-foreground/40 bg-transparent text-foreground border-none outline-none tracking-tight resize-none overflow-hidden font-serif"
           />
         </div>
 

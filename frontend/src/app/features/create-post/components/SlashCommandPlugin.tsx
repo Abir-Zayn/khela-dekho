@@ -131,8 +131,8 @@ export function SlashCommandPlugin() {
         menuRenderFn={(anchorElementRef, { selectedIndex, selectOptionAndCleanUp }) =>
           anchorElementRef.current
             ? createPortal(
-                <div className="fixed z-50 min-w-[260px] bg-zinc-900/95 backdrop-blur-md border border-zinc-700/80 rounded-2xl p-1.5 shadow-2xl animate-in fade-in zoom-in-95 duration-100 select-none text-white">
-                  <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+                <div className="fixed z-50 min-w-[260px] bg-popover/95 backdrop-blur-md border border-border rounded-2xl p-1.5 shadow-2xl animate-in fade-in zoom-in-95 duration-100 select-none text-popover-foreground transition-colors duration-200">
+                  <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                     Insert Block
                   </div>
                   {options.map((option, index) => (
@@ -141,12 +141,12 @@ export function SlashCommandPlugin() {
                       type="button"
                       onClick={() => selectOptionAndCleanUp(option)}
                       className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-xs font-semibold transition-colors cursor-pointer ${
-                        index === selectedIndex ? 'bg-zinc-800 text-white' : 'text-zinc-300 hover:bg-zinc-800/60 hover:text-white'
+                        index === selectedIndex ? 'bg-muted text-foreground' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
                       }`}
                     >
-                      {option.type === 'image' && <ImageIcon size={16} className="text-blue-400" />}
-                      {option.type === 'video' && <Video size={16} className="text-red-400" />}
-                      {option.type === 'reference' && <LinkIcon size={16} className="text-amber-400" />}
+                      {option.type === 'image' && <ImageIcon size={16} className="text-blue-500" />}
+                      {option.type === 'video' && <Video size={16} className="text-red-500" />}
+                      {option.type === 'reference' && <LinkIcon size={16} className="text-terracotta-primary" />}
                       <span>{option.title}</span>
                     </button>
                   ))}
@@ -161,10 +161,10 @@ export function SlashCommandPlugin() {
         createPortal(
           <div
             style={{ top: `${inputPosition.top}px`, left: `${inputPosition.left}px` }}
-            className="fixed z-50 min-w-[280px] max-w-[340px] bg-zinc-900/95 backdrop-blur-md border border-zinc-700/80 rounded-2xl p-2.5 shadow-2xl text-white animate-in fade-in zoom-in-95 duration-100"
+            className="fixed z-50 min-w-[280px] max-w-[340px] bg-popover/95 backdrop-blur-md border border-border rounded-2xl p-2.5 shadow-2xl text-popover-foreground animate-in fade-in zoom-in-95 duration-100 transition-colors duration-200"
           >
             <form onSubmit={handleSubmitUrl} className="space-y-2">
-              <div className="flex items-center justify-between text-xs font-bold text-amber-400 px-1">
+              <div className="flex items-center justify-between text-xs font-bold text-terracotta-primary px-1">
                 <span className="capitalize flex items-center gap-1.5">
                   {activeType === 'image' && <ImageIcon size={14} />}
                   {activeType === 'video' && <Video size={14} />}
@@ -177,7 +177,7 @@ export function SlashCommandPlugin() {
                     setActiveType(null);
                     setInputPosition(null);
                   }}
-                  className="text-zinc-400 hover:text-white p-0.5 cursor-pointer"
+                  className="text-muted-foreground hover:text-foreground p-0.5 cursor-pointer"
                 >
                   <X size={14} />
                 </button>
@@ -189,7 +189,7 @@ export function SlashCommandPlugin() {
                   placeholder="Source Title (e.g. ESPN Analysis)"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-lg py-1.5 px-2.5 text-xs outline-none focus:border-amber-500"
+                  className="w-full bg-card border border-border text-foreground placeholder:text-muted-foreground/60 rounded-lg py-1.5 px-2.5 text-xs outline-none focus:border-terracotta-primary"
                 />
               )}
 
@@ -207,11 +207,11 @@ export function SlashCommandPlugin() {
                   onChange={(e) => setUrl(e.target.value)}
                   autoFocus
                   required
-                  className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-lg py-1.5 px-2.5 text-xs outline-none focus:border-amber-500"
+                  className="w-full bg-card border border-border text-foreground placeholder:text-muted-foreground/60 rounded-lg py-1.5 px-2.5 text-xs outline-none focus:border-terracotta-primary"
                 />
                 <button
                   type="submit"
-                  className="bg-amber-500 hover:bg-amber-600 text-black font-bold p-2 rounded-lg text-xs transition-colors cursor-pointer shrink-0"
+                  className="bg-terracotta-primary hover:bg-terracotta-dark text-white font-bold p-2 rounded-lg text-xs transition-colors cursor-pointer shrink-0"
                 >
                   <CornerDownLeft size={14} />
                 </button>

@@ -2,7 +2,12 @@
 
 import React from 'react';
 import SportsBlogHome from './root';
+import type { Post } from './types';
 
-export default function SportsBlogHomePage() {
-  return <SportsBlogHome />;
+interface SportsBlogHomePageProps {
+  initialPosts?: Post[];
+}
+
+export default function SportsBlogHomePage({ initialPosts }: SportsBlogHomePageProps) {
+  return <SportsBlogHome initialPosts={initialPosts} />;
 }
