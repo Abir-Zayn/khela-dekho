@@ -3,15 +3,20 @@
 import { apiFetch } from '../../../configs/apiClient';
 import type { DraftAck, DraftSaveInput } from '../types';
 
-// Autosaves the current editor state into an existing server draft. Returns the
-// light ack ({ id, status, updated_at }). Throws on 409 when the draft was edited
-// elsewhere — the caller surfaces that as a conflict warning.
 export async function saveDraftAction(
   draftId: string,
   input: DraftSaveInput,
-): Promise<DraftAck> {
-  return apiFetch<DraftAck>(`/api/posts/${draftId}/draft`, {
-    method: 'PUT',
-    body: JSON.stringify(input),
-  });
+): Promise<{ success: boolean; data?: DraftAck; error?: string }> {
+  try {
+    const data = await apiFetch<DraftAck>(`/api/posts/${draftId}/draft`, {
+      method: 'PUT',
+      body: JSON.stringify(input),
+    });
+    return { success: true, data };
+  } catch (err: unknown) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'Failed to save draft.',
+    };
+  }
 }

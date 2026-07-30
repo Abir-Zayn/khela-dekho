@@ -3,8 +3,14 @@
 import { apiFetch } from '../../../configs/apiClient';
 import type { DraftAck } from '../types';
 
-// Creates an empty server-side draft and returns its id. Called once, lazily, on
-// the first meaningful edit of a brand-new post.
-export async function createDraftAction(): Promise<DraftAck> {
-  return apiFetch<DraftAck>('/api/posts/drafts', { method: 'POST' });
+export async function createDraftAction(): Promise<{ success: boolean; data?: DraftAck; error?: string }> {
+  try {
+    const data = await apiFetch<DraftAck>('/api/posts/drafts', { method: 'POST' });
+    return { success: true, data };
+  } catch (err: unknown) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'Failed to create draft.',
+    };
+  }
 }

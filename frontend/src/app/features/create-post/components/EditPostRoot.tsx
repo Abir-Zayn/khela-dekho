@@ -151,16 +151,30 @@ export default function EditPostRoot({ postId }: EditPostRootProps) {
       return;
     }
 
+    const plainText = contentHtml.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').trim();
+    if (plainText.length < 65) {
+      toast.error('Content too short', {
+        description: 'Your story content must be at least 65 characters long.',
+      });
+      return;
+    }
+
     try {
       setIsSaving(true);
 
-      await updatePost(postId, {
+      const updateRes = await updatePost(postId, {
         title: trimmedTitle,
         content: contentHtml,
         category_id: selectedCategoryId,
         tags: selectedTags,
         image_url: coverImage,
       });
+
+      if (!updateRes.success) {
+        setIsSaving(false);
+        toast.error('Could not save changes', { description: updateRes.error || 'Failed to update post.' });
+        return;
+      }
 
       setIsSaving(false);
       toast.success('Story updated successfully!');

@@ -202,14 +202,21 @@ export default function CreatePostRoot() {
       if (!id) {
         if (creatingRef.current) return;
         creatingRef.current = true;
-        const created = await createDraftAction();
-        id = created.id;
+        const createRes = await createDraftAction();
+        if (!createRes.success || !createRes.data) {
+          creatingRef.current = false;
+          setSaveStatus('error');
+          return;
+        }
+        id = createRes.data.id;
         setDraftId(id);
-        serverUpdatedAtRef.current = created.updated_at;
+        serverUpdatedAtRef.current = createRes.data.updated_at;
         creatingRef.current = false;
       }
 
-      const ack = await saveDraftAction(id, {
+      if (!id) return;
+
+      const saveRes = await saveDraftAction(id, {
         title: title.trim().slice(0, 100) || null,
         content: isEmptyContent(contentHtml) ? null : contentHtml,
         category_id: selectedCategoryId || null,
@@ -220,7 +227,14 @@ export default function CreatePostRoot() {
         reference_url: null,
         client_updated_at: serverUpdatedAtRef.current,
       });
-      serverUpdatedAtRef.current = ack.updated_at;
+      if (!saveRes.success || !saveRes.data) {
+        setSaveStatus('error');
+        if (saveRes.error?.toLowerCase().includes('modified elsewhere')) {
+          toast.error('Draft conflict', { description: saveRes.error });
+        }
+        return;
+      }
+      serverUpdatedAtRef.current = saveRes.data.updated_at;
       lastSyncedRef.current = serialized;
       setSaveStatus('saved');
     } catch (err) {
@@ -293,6 +307,14 @@ export default function CreatePostRoot() {
       return;
     }
 
+    const plainText = contentHtml.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').trim();
+    if (plainText.length < 65) {
+      toast.error('Content too short', {
+        description: 'Your story content must be at least 65 characters long to publish.',
+      });
+      return;
+    }
+
     try {
       setIsPublishing(true);
 
@@ -302,12 +324,18 @@ export default function CreatePostRoot() {
       // Ensure a server draft exists and holds the latest content.
       let id = draftId;
       if (!id) {
-        const created = await createDraftAction();
-        id = created.id;
+        const createRes = await createDraftAction();
+        if (!createRes.success || !createRes.data) {
+          setIsPublishing(false);
+          toast.error('Could not publish', { description: createRes.error || 'Failed to create draft.' });
+          return;
+        }
+        id = createRes.data.id;
         setDraftId(id);
-        serverUpdatedAtRef.current = created.updated_at;
+        serverUpdatedAtRef.current = createRes.data.updated_at;
       }
-      const saveAck = await saveDraftAction(id, {
+
+      const saveRes = await saveDraftAction(id, {
         title: title.trim().slice(0, 100),
         content: contentHtml,
         category_id: selectedCategoryId,
@@ -317,9 +345,19 @@ export default function CreatePostRoot() {
         reference_url: null,
         client_updated_at: serverUpdatedAtRef.current,
       });
-      serverUpdatedAtRef.current = saveAck.updated_at;
+      if (!saveRes.success || !saveRes.data) {
+        setIsPublishing(false);
+        toast.error('Could not publish', { description: saveRes.error || 'Failed to save draft.' });
+        return;
+      }
+      serverUpdatedAtRef.current = saveRes.data.updated_at;
 
-      await publishDraftAction(id);
+      const pubRes = await publishDraftAction(id);
+      if (!pubRes.success) {
+        setIsPublishing(false);
+        toast.error('Could not publish', { description: pubRes.error || 'Failed to publish story.' });
+        return;
+      }
 
       // Draft is now a published post — clear the local recovery copy.
       try {
