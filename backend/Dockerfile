@@ -32,8 +32,10 @@ RUN groupadd -g 999 appuser && \
 COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Copy project files
+# Copy project files and migrations
 COPY app ./app
+COPY migrations ./migrations
+COPY alembic.ini ./alembic.ini
 
 # Set ownership to the non-root user
 RUN chown -R appuser:appuser /app

@@ -80,6 +80,29 @@ class ReactionCounts(BaseModel):
 class ReactionCreate(BaseModel):
     reaction_type: ReactionType
 
+class ReactorUser(BaseModel):
+    """Public profile projection used when listing a post's reactors."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    username: str
+    full_name: str | None = None
+    profile_photo_url: str | None = None
+
+
+class ReactionEntry(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    user: ReactorUser
+    reaction_type: ReactionType
+    reacted_at: datetime
+
+
+class ReactionListResponse(BaseModel):
+    total: int
+    reactions: list[ReactionEntry]
+
 
 #-------- POST Schema ----------
 
@@ -166,7 +189,10 @@ class PostResponse(PostBase):
     tags: list[TagResponse] = Field(default=[])
     reaction_counts: ReactionCounts
     current_user_reaction: str | None = None
- 
+    # Author pin state. `pinned_at` is also the pin ordering key on a profile feed.
+    is_pinned: bool = False
+    pinned_at: datetime | None = None
+
 # List/card view. Ships an `excerpt` + `read_minutes` instead of the full `content`
 # body so the feed payload stays small (a post body can be many KB of HTML).
 class PostListResponse(BaseModel):
@@ -190,6 +216,8 @@ class PostListResponse(BaseModel):
     tags: list[TagResponse] = Field(default=[])
     reaction_counts: ReactionCounts
     current_user_reaction: str | None = None
+    is_pinned: bool = False
+    pinned_at: datetime | None = None
 
 
 class UploadURLRequest(BaseModel):

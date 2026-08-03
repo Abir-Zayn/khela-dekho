@@ -3,7 +3,7 @@ import uuid
 from uuid6 import uuid7
 from datetime import UTC, datetime
 from enum import unique
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, Uuid, Enum, Computed, Index, Table, Column
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, Uuid, Enum, Computed, Index, Table, Column, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import TSVECTOR,ARRAY
 
@@ -130,6 +130,12 @@ class Post(Base):
     love_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     laugh_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
+    # Author-pinned to their profile. NULL means not pinned; the timestamp doubles
+    # as the pin order so the most recently pinned story leads the profile feed.
+    pinned_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
     #Embeded-urls
     image_url: Mapped[str | None] =mapped_column(String(500), nullable=True)
     video_url: Mapped[str | None] =mapped_column(String(500), nullable=True)
@@ -172,6 +178,10 @@ class Post(Base):
         self._current_user_reaction = value
 
     @property
+    def is_pinned(self) -> bool:
+        return self.pinned_at is not None
+
+    @property
     def author(self) -> str:
         # pyrefly: ignore [redundant-condition]
         return self.user.username if self.user else ""
@@ -212,6 +222,11 @@ class Reaction(Base):
         # pyrefly: ignore [no-matching-overload]
         Enum(ReactionType, name="reaction_type", values_callable=lambda e: [m.value for m in e]),
         nullable=False,
+    )
+    reacted_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(UTC),
+        server_default=func.now(),
     )
 
     # Unique constraint on (user_id, post_id)

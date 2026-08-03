@@ -661,6 +661,35 @@
           "response": []
         },
         {
+          "name": "List Pinned Posts",
+          "id": "0a06e02c-f885-5dff-ae35-ba9691c77999",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/pinned",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts",
+                "pinned"
+              ],
+              "query": [
+                {
+                  "key": "author",
+                  "value": "{{author}}",
+                  "disabled": true,
+                  "description": ""
+                }
+              ]
+            },
+            "description": "Pinned stories for a profile. `author` reads another user's pinned strip;\nomit it to read your own (requires auth). Declared before `/{post_id}` so the\nliteral path wins over the UUID route."
+          },
+          "response": []
+        },
+        {
           "name": "Save Draft",
           "id": "b9a0a75a-c821-5289-856a-aefe6af183e5",
           "request": {
@@ -891,6 +920,50 @@
                 }
               }
             }
+          },
+          "response": []
+        },
+        {
+          "name": "Pin Post",
+          "id": "423babe0-35f2-5994-99c5-18c2897348d3",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/{{post_id}}/pin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts",
+                "{{post_id}}",
+                "pin"
+              ]
+            },
+            "description": "Pin a published post to its author's profile. Idempotent: pinning an already\npinned post keeps the original pin time. Capped at MAX_PINNED_POSTS per author."
+          },
+          "response": []
+        },
+        {
+          "name": "Unpin Post",
+          "id": "cce86ddd-2b16-5ce5-8700-49b1af1ecff5",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/posts/{{post_id}}/pin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "posts",
+                "{{post_id}}",
+                "pin"
+              ]
+            },
+            "description": "Unpin a post. Idempotent: unpinning an unpinned post is a no-op 200."
           },
           "response": []
         },

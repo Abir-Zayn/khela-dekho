@@ -23,11 +23,15 @@ from app.schemas import (
     UploadURLRequest,
     UploadURLResponse,
     ReactionCreate,
+    ReactionListResponse,
 )
 from app.security import can_modify_post, get_current_user, get_current_user_optional
 
 _HTML_TAG_RE = re.compile(r"<[^>]*>")
 _WORDS_PER_MINUTE = 200
+# A profile highlights only a handful of stories; the cap keeps "pinned" meaningful
+# and bounds the pinned strip the profile renders above the normal feed.
+MAX_PINNED_POSTS = 3
 
 
 def _plain_text(content: str | None) -> str:
@@ -218,6 +222,61 @@ async def list_drafts(
         .order_by(models.Post.updated_at.desc())
     )
     return res.scalars().all()
+
+
+@router.get("/pinned", response_model=list[PostListResponse])
+async def list_pinned_posts(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[models.User | None, Depends(get_current_user_optional)],
+    author: str | None = None,
+):
+    """Pinned stories for a profile. `author` reads another user's pinned strip;
+    omit it to read your own (requires auth). Declared before `/{post_id}` so the
+    literal path wins over the UUID route."""
+    stmt = (
+        select(models.Post)
+        .options(
+            selectinload(models.Post.user),
+            selectinload(models.Post.category),
+            selectinload(models.Post.tags),
+        )
+        .where(
+            models.Post.pinned_at.is_not(None),
+            models.Post.status == models.PostStatus.PUBLISHED,
+        )
+        .order_by(models.Post.pinned_at.desc())
+        .limit(MAX_PINNED_POSTS)
+    )
+    if author:
+        stmt = stmt.join(models.User).where(models.User.username == author)
+    elif current_user:
+        stmt = stmt.where(models.Post.user_id == current_user.id)
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Sign in to list your pinned posts, or pass ?author=<username>",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    posts = (await db.execute(stmt)).scalars().all()
+    for p in posts:
+        _attach_list_fields(p)
+
+    if current_user and posts:
+        reactions_res = await db.execute(
+            select(models.Reaction).where(
+                models.Reaction.post_id.in_([p.id for p in posts]),
+                models.Reaction.user_id == current_user.id,
+            )
+        )
+        user_reactions = {r.post_id: r.reaction_type for r in reactions_res.scalars().all()}
+        for p in posts:
+            p.current_user_reaction = user_reactions.get(p.id)
+    else:
+        for p in posts:
+            p.current_user_reaction = None
+
+    return posts
 
 
 @router.put("/{post_id}/draft", response_model=DraftAck)
@@ -688,7 +747,8 @@ async def get_posts_by_author(
             models.User.username == author,
             models.Post.status == models.PostStatus.PUBLISHED,
         )
-        .order_by(models.Post.date_posted.desc())
+        # Pinned stories lead the profile feed (newest pin first), then normal recency.
+        .order_by(models.Post.pinned_at.desc().nullslast(), models.Post.date_posted.desc())
         .offset(offset)
         .limit(limit)
     )
@@ -730,6 +790,122 @@ async def get_upload_url(
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     return result
+
+
+async def _load_post_for_pin(post_id: uuid.UUID, db: AsyncSession) -> models.Post:
+    res = await db.execute(
+        select(models.Post)
+        .options(
+            selectinload(models.Post.user),
+            selectinload(models.Post.category),
+            selectinload(models.Post.tags),
+        )
+        .where(models.Post.id == post_id)
+    )
+    post = res.scalars().first()
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+    return post
+
+
+async def _attach_reaction(post: models.Post, user: models.User, db: AsyncSession) -> None:
+    reaction_res = await db.execute(
+        select(models.Reaction).where(
+            models.Reaction.post_id == post.id,
+            models.Reaction.user_id == user.id,
+        )
+    )
+    reaction = reaction_res.scalars().first()
+    post.current_user_reaction = reaction.reaction_type if reaction else None
+
+
+@router.post("/{post_id}/pin", response_model=PostResponse)
+async def pin_post(
+    post_id: uuid.UUID,
+    current_user: Annotated[models.User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    """Pin a published post. Any logged-in user can pin a post.
+    Capped at MAX_PINNED_POSTS."""
+    post = await _load_post_for_pin(post_id, db)
+    if post.status != models.PostStatus.PUBLISHED:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Only published posts can be pinned",
+        )
+
+    if post.pinned_at is None:
+        pinned_count = await db.scalar(
+            select(func.count())
+            .select_from(models.Post)
+            .where(
+                models.Post.pinned_at.is_not(None),
+            )
+        )
+        if (pinned_count or 0) >= MAX_PINNED_POSTS:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=(
+                    f"At most {MAX_PINNED_POSTS} posts can be pinned. "
+                    "Unpin another story first."
+                ),
+            )
+        post.pinned_at = datetime.now(UTC)
+        await db.commit()
+        post = await _load_post_for_pin(post_id, db)
+
+    await _attach_reaction(post, current_user, db)
+    return post
+
+
+@router.delete("/{post_id}/pin", response_model=PostResponse)
+async def unpin_post(
+    post_id: uuid.UUID,
+    current_user: Annotated[models.User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    """Unpin a post. Any logged-in user can unpin a post."""
+    post = await _load_post_for_pin(post_id, db)
+    if post.pinned_at is not None:
+        post.pinned_at = None
+        await db.commit()
+        post = await _load_post_for_pin(post_id, db)
+
+    await _attach_reaction(post, current_user, db)
+    return post
+
+
+@router.get("/{post_id}/reactions", response_model=ReactionListResponse)
+async def list_post_reactions(
+    post_id: uuid.UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    reaction_type: Annotated[
+        models.ReactionType | None,
+        Query(alias="type"),
+    ] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    offset: Annotated[int, Query(ge=0)] = 0,
+) -> ReactionListResponse:
+    """List public reactor identities for a post, newest reaction first."""
+    filters = [models.Reaction.post_id == post_id]
+    if reaction_type is not None:
+        filters.append(models.Reaction.reaction_type == reaction_type)
+
+    total = await db.scalar(
+        select(func.count()).select_from(models.Reaction).where(*filters)
+    )
+    reaction_result = await db.execute(
+        select(models.Reaction)
+        .options(selectinload(models.Reaction.user))
+        .where(*filters)
+        .order_by(models.Reaction.reacted_at.desc(), models.Reaction.id.desc())
+        .offset(offset)
+        .limit(limit)
+    )
+    return ReactionListResponse(
+        total=total or 0,
+        reactions=reaction_result.scalars().all(),
+    )
 
 
 @router.post("/{post_id}/react", response_model=PostResponse)

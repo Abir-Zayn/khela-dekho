@@ -4,7 +4,7 @@ Auto-generated from the FastAPI OpenAPI schema. **Don't hand-edit the JSON** —
 
 | File | What it is |
 |---|---|
-| `khela-dekho.postman_collection.json` | 34 requests, foldered by tag (Auth, Posts, Users, Categories, Tags, Live Scores, Cricket, Baseball, Webhooks) |
+| `khela-dekho.postman_collection.json` | 37 requests, foldered by tag (Auth, Posts, Users, Categories, Tags, Live Scores, Cricket, Baseball, Webhooks) |
 | `khela-dekho.postman_environment.json` | `baseUrl`, tokens, and reusable path variables |
 
 ## Setup (once)
