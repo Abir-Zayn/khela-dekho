@@ -18,15 +18,7 @@ export async function getPostReactions(
   const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
   if (type !== 'all') params.set('type', type);
 
-  console.log('[getPostReactions] postId:', postId, 'type:', type, 'limit:', limit, 'offset:', offset);
-  try {
-    const result = await apiFetch<ReactionListResponse>(
-      `/api/posts/${postId}/reactions?${params.toString()}`
-    );
-    console.log('[getPostReactions] success: total=', result.total, 'returned=', result.reactions.length);
-    return result;
-  } catch (err) {
-    console.error('[getPostReactions] failed for postId:', postId, 'type:', type, 'error:', err);
-    throw err;
-  }
+  return apiFetch<ReactionListResponse>(
+    `/api/posts/${postId}/reactions?${params.toString()}`
+  );
 }

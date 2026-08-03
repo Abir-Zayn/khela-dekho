@@ -130,7 +130,7 @@ Client Components can only receive serializable props (no functions, Date object
 ```tsx
 // ❌ Error: Non-serializable prop
 <ClientComponent
-  onClick={() => console.log('click')} // Functions can't be serialized
+  onClick={() => "click"} // Functions can't be serialized
   date={new Date()} // Date objects can't be serialized
 />
 
