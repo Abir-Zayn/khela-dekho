@@ -3,16 +3,21 @@
 import React, { use, useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   ArrowLeft,
   Share2,
   Check,
   AlertTriangle,
   SquarePen,
+  Pin,
+  PinOff,
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { getSinglePost } from '@/src/app/features/sports-blog-home/actions/get_single_post';
 import { reactToPost, removeReaction, ReactionType } from '@/src/app/features/sports-blog-home/actions/react_on_post';
+import { pinPost, unpinPost } from '@/src/app/features/sports-blog-home/actions/pin_posts';
 import { getTagColor, getPostGradient, getReadTime } from '@/src/app/features/sports-blog-home/utils/postDisplay';
 import { Post } from '@/src/app/features/sports-blog-home/types';
 import { getCurrentUser } from '@/src/app/features/auth';
@@ -28,9 +33,16 @@ interface VisitingPostPageProps {
   params: Promise<{ id: string }>;
 }
 
+function isAuthError(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  const msg = err.message.toLowerCase();
+  return msg.includes('not authenticated') || msg.includes('could not validate credentials');
+}
+
 export default function VisitingPostPage({ params }: VisitingPostPageProps) {
   const { id: postId } = use(params);
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   const [copied, setCopied] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -66,7 +78,19 @@ export default function VisitingPostPage({ params }: VisitingPostPageProps) {
     queryFn: () => getCurrentUser(),
   });
 
-  const isAuthor = Boolean(user && post && (user.id === post.user_id || user.username === post.author));
+  const redirectToLogin = () => {
+    toast.error('Login Required', {
+      description: 'Please log in to continue.',
+    });
+    router.push(`/login?redirect=/posts/${postId}`);
+  };
+
+  const isAuthor = Boolean(
+    user &&
+    post &&
+    (user.id === post.user_id ||
+      (user.username && post.author && user.username.toLowerCase().trim() === post.author.toLowerCase().trim()))
+  );
 
   // Reaction mutation logic (Like, Love, Laugh)
   const reactionMutation = useMutation({
@@ -84,6 +108,51 @@ export default function VisitingPostPage({ params }: VisitingPostPageProps) {
         queryClient.invalidateQueries({ queryKey: ['posts'] });
       }
     },
+    onError: (err: unknown) => {
+      console.error('[reactionMutation] failed:', err);
+      if (isAuthError(err)) {
+        redirectToLogin();
+        return;
+      }
+      const msg = err instanceof Error ? err.message : 'Failed to react to post.';
+      toast.error('Reaction Failed', { description: msg });
+    },
+  });
+
+  // Pin mutation logic (Pin / Unpin post)
+  const pinMutation = useMutation({
+    mutationFn: async () => {
+      if (!post) return;
+      if (post.is_pinned) {
+        return await unpinPost(post.id);
+      } else {
+        return await pinPost(post.id);
+      }
+    },
+    onSuccess: (updatedPost) => {
+      if (updatedPost) {
+        queryClient.setQueryData(['post', postId], updatedPost);
+        queryClient.invalidateQueries({ queryKey: ['posts'] });
+        queryClient.invalidateQueries({ queryKey: ['allPosts'] });
+        toast.success(
+          updatedPost.is_pinned ? 'Story Pinned' : 'Story Unpinned',
+          {
+            description: updatedPost.is_pinned
+              ? 'This article is now pinned to your profile.'
+              : 'This article is no longer pinned.',
+          }
+        );
+      }
+    },
+    onError: (err: unknown) => {
+      console.error('[pinMutation] failed:', err);
+      if (isAuthError(err)) {
+        redirectToLogin();
+        return;
+      }
+      const msg = err instanceof Error ? err.message : 'Failed to update pin status.';
+      toast.error('Pin Failed', { description: msg });
+    },
   });
 
   const handleShare = async () => {
@@ -92,6 +161,22 @@ export default function VisitingPostPage({ params }: VisitingPostPageProps) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+
+  const handleReact = (type: ReactionType) => {
+    if (!user) {
+      redirectToLogin();
+      return;
+    }
+    reactionMutation.mutate(type);
+  };
+
+  const handleTogglePin = () => {
+    if (!user) {
+      redirectToLogin();
+      return;
+    }
+    pinMutation.mutate();
   };
 
   // 1. Skeleton Loading State
@@ -167,6 +252,30 @@ export default function VisitingPostPage({ params }: VisitingPostPageProps) {
         <BrandLogo size="sm" showSubtitle={true} />
 
         <div className="flex items-center gap-3">
+          {isAuthor && (
+            <button
+              onClick={handleTogglePin}
+              disabled={pinMutation.isPending}
+              className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border transition-all cursor-pointer shadow-sm ${post.is_pinned
+                  ? 'bg-amber-500/10 text-amber-500 border-amber-500/30 hover:bg-amber-500/20'
+                  : 'bg-card hover:bg-muted text-muted-foreground hover:text-foreground border-border'
+                }`}
+              title={post.is_pinned ? 'Unpin article' : 'Pin article to profile'}
+            >
+              {post.is_pinned ? (
+                <>
+                  <PinOff size={14} className="text-amber-500" />
+                  <span>Pinned</span>
+                </>
+              ) : (
+                <>
+                  <Pin size={14} />
+                  <span>Pin</span>
+                </>
+              )}
+            </button>
+          )}
+
           <button
             onClick={handleShare}
             className="flex items-center gap-1.5 text-xs font-bold text-foreground bg-card hover:bg-muted px-3.5 py-1.5 rounded-full border border-border transition-all cursor-pointer shadow-sm"
@@ -205,6 +314,8 @@ export default function VisitingPostPage({ params }: VisitingPostPageProps) {
           copied={copied}
           onShare={handleShare}
           isAuthor={isAuthor}
+          onTogglePin={handleTogglePin}
+          isPinPending={pinMutation.isPending}
         />
 
         {/* 2. Article Content Component (Cover image, Video stream preview, Body text, References, Topics) */}
@@ -218,8 +329,11 @@ export default function VisitingPostPage({ params }: VisitingPostPageProps) {
           post={post}
           copied={copied}
           isPending={reactionMutation.isPending}
-          onReact={(type) => reactionMutation.mutate(type)}
+          onReact={handleReact}
           onShare={handleShare}
+          isAuthor={isAuthor}
+          onTogglePin={handleTogglePin}
+          isPinPending={pinMutation.isPending}
         />
         {/* 4. Related Posts Recommendations Component */}
         <RelatedPosts postId={post.id} />

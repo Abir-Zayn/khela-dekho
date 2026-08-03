@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Calendar, Clock, Share2, Check, Edit3 } from 'lucide-react';
+import { Calendar, Clock, Share2, Check, Edit3, Pin, PinOff } from 'lucide-react';
 import { Post, Tag } from '@/src/app/features/sports-blog-home/types';
 import { formatDate } from '@/src/app/features/sports-blog-home/utils/postDisplay';
 
@@ -14,6 +14,8 @@ export interface PostArticleHeaderProps {
   copied: boolean;
   onShare: () => void;
   isAuthor?: boolean;
+  onTogglePin?: () => void;
+  isPinPending?: boolean;
 }
 
 export function PostArticleHeader({
@@ -24,6 +26,8 @@ export function PostArticleHeader({
   copied,
   onShare,
   isAuthor,
+  onTogglePin,
+  isPinPending,
 }: PostArticleHeaderProps) {
   const tags: Tag[] = post.tags || [];
   const authorInitial = post.author ? post.author.charAt(0).toUpperCase() : 'K';
@@ -88,6 +92,21 @@ export function PostArticleHeader({
               <Edit3 size={14} />
               <span>Edit Story</span>
             </Link>
+          )}
+
+          {onTogglePin && (
+            <button
+              onClick={onTogglePin}
+              disabled={isPinPending}
+              className={`p-2.5 rounded-full border transition-all cursor-pointer shadow-sm ${
+                post.is_pinned
+                  ? 'bg-amber-500/10 text-amber-500 border-amber-500/30 hover:bg-amber-500/20'
+                  : 'bg-card hover:bg-muted text-muted-foreground hover:text-foreground border-border'
+              }`}
+              title={post.is_pinned ? 'Unpin this story' : 'Pin this story to profile'}
+            >
+              {post.is_pinned ? <PinOff size={18} /> : <Pin size={18} />}
+            </button>
           )}
 
           <button

@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { Avatar, AvatarImage, AvatarFallback } from '../../../../components/ui/avatar';
 import type { Post } from '../../sports-blog-home/types';
 import type { AuthUser } from '../../auth/types';
+import { pinPost, unpinPost } from '../../sports-blog-home/actions/pin_posts';
 
 interface PublishedPostCardProps {
   post: Post;
@@ -24,6 +25,8 @@ interface PublishedPostCardProps {
   onMoreClick?: (post: Post) => void;
   onDeleteClick?: (post: Post) => void;
   onEditClick?: (post: Post) => void;
+  pinnedCount?: number;
+  onPinChange?: () => void;
 }
 
 function formatDate(dateString: string): string {
@@ -46,12 +49,23 @@ function stripHtml(html: string): string {
   return html.replace(/<[^>]*>?/gm, '').trim();
 }
 
-export function PublishedPostCard({ post, user, onDeleteClick, onEditClick }: PublishedPostCardProps) {
+export function PublishedPostCard({
+  post,
+  user,
+  onDeleteClick,
+  onEditClick,
+  pinnedCount,
+  onPinChange,
+}: PublishedPostCardProps) {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isPinned, setIsPinned] = useState(false);
+  const [isPinned, setIsPinned] = useState(post.is_pinned ?? false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setIsPinned(post.is_pinned ?? false);
+  }, [post.is_pinned]);
 
   const authorName = post.author || user?.full_name || user?.username || 'Author';
   const authorPhoto = user?.profile_photo_url;
@@ -82,15 +96,43 @@ export function PublishedPostCard({ post, user, onDeleteClick, onEditClick }: Pu
   // Feed responses carry `excerpt` (already plain) instead of the full body.
   const plainContent = stripHtml(post.excerpt ?? post.content ?? '');
 
-  const handleTogglePin = () => {
+  const isPinDisabled = !isPinned && pinnedCount !== undefined && pinnedCount >= 3;
+
+  const handleTogglePin = async () => {
+    setIsMenuOpen(false);
+
+    if (isPinDisabled) {
+      toast.error('Cap reached', {
+        description: 'At most 3 posts can be pinned. Unpin another story first.',
+      });
+      return;
+    }
+
     const nextState = !isPinned;
     setIsPinned(nextState);
-    setIsMenuOpen(false);
-    toast.success(nextState ? 'Story Pinned' : 'Story Unpinned', {
-      description: nextState
-        ? `"${post.title.slice(0, 25)}..." pinned to profile.`
-        : `"${post.title.slice(0, 25)}..." unpinned.`,
-    });
+
+    try {
+      if (nextState) {
+        await pinPost(post.id);
+        toast.success('Story Pinned', {
+          description: `"${post.title.slice(0, 25)}..." pinned to profile.`,
+        });
+      } else {
+        await unpinPost(post.id);
+        toast.success('Story Unpinned', {
+          description: `"${post.title.slice(0, 25)}..." unpinned.`,
+        });
+      }
+      if (onPinChange) {
+        onPinChange();
+      }
+    } catch (err: unknown) {
+      setIsPinned(!nextState);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update pin status.';
+      toast.error(nextState ? 'Pin Failed' : 'Unpin Failed', {
+        description: errorMessage,
+      });
+    }
   };
 
   const handleToggleBookmark = () => {
@@ -238,8 +280,12 @@ export function PublishedPostCard({ post, user, onDeleteClick, onEditClick }: Pu
 
               <button
                 type="button"
+                disabled={isPinDisabled}
                 onClick={handleTogglePin}
-                className="w-full text-left px-3.5 py-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors flex items-center gap-2.5 cursor-pointer"
+                className={`w-full text-left px-3.5 py-2 text-xs font-semibold hover:bg-muted transition-colors flex items-center gap-2.5 ${
+                  isPinDisabled ? 'opacity-50 cursor-not-allowed text-muted-foreground' : 'text-foreground cursor-pointer'
+                }`}
+                title={isPinDisabled ? 'At most 3 posts can be pinned. Unpin another story first.' : undefined}
               >
                 {isPinned ? (
                   <>

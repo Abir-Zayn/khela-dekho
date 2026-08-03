@@ -36,6 +36,8 @@ export interface Post {
   tags: Tag[];
   reaction_counts: ReactionCounts;
   current_user_reaction: string | null;
+  is_pinned?: boolean;
+  pinned_at?: string | null;
 }
 
 export type LayoutMode = 'grid' | 'list';

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { SquarePen, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
@@ -15,6 +15,7 @@ interface PublishingTabProps {
 }
 
 export function PublishingTab({ user }: PublishingTabProps) {
+  const queryClient = useQueryClient();
   const { data: posts, isLoading } = useQuery({
     queryKey: ['allPosts'],
     // Pull a large page: this tab filters the feed down to the user's own posts
@@ -26,6 +27,12 @@ export function PublishingTab({ user }: PublishingTabProps) {
   const userPosts = (posts || []).filter(
     (p) => p.user_id === user?.id || (user?.username && p.author === user.username)
   );
+
+  const pinnedCount = userPosts.filter((p) => p.is_pinned).length;
+
+  const handlePinChange = () => {
+    queryClient.invalidateQueries({ queryKey: ['allPosts'] });
+  };
 
   const handleMoreClick = (post: Post) => {
     toast.info('Post Options', {
@@ -74,6 +81,8 @@ export function PublishingTab({ user }: PublishingTabProps) {
               key={post.id}
               post={post}
               user={user}
+              pinnedCount={pinnedCount}
+              onPinChange={handlePinChange}
               onMoreClick={handleMoreClick}
             />
           ))}
@@ -88,6 +97,8 @@ export function PublishingTab({ user }: PublishingTabProps) {
                 key={post.id}
                 post={post}
                 user={user}
+                pinnedCount={pinnedCount}
+                onPinChange={handlePinChange}
                 onMoreClick={handleMoreClick}
               />
             ))

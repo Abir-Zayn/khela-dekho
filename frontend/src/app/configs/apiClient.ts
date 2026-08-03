@@ -70,19 +70,36 @@ async function parseErrorMessage(response: Response): Promise<string> {
 // talks to the FastAPI backend, and normalizes error responses into thrown Errors.
 export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const { headers, ...rest } = options;
+  const url = `${API_BASE_URL}${path}`;
+  const method = rest.method ?? 'GET';
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...rest,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(await authHeader()),
-      ...headers,
-    },
-    cache: 'no-store',
-  });
+  console.log(`[apiFetch] -> ${method} ${url}`, rest.body ? { body: rest.body } : '');
+
+  const resolvedAuthHeader = await authHeader();
+  console.log('[apiFetch] auth header present:', Boolean(resolvedAuthHeader.Authorization));
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...rest,
+      headers: {
+        'Content-Type': 'application/json',
+        ...resolvedAuthHeader,
+        ...headers,
+      },
+      cache: 'no-store',
+    });
+  } catch (err) {
+    console.error(`[apiFetch] network error calling ${method} ${url}:`, err);
+    throw err;
+  }
+
+  console.log(`[apiFetch] <- ${response.status} ${method} ${url}`);
 
   if (!response.ok) {
-    throw new Error(await parseErrorMessage(response));
+    const message = await parseErrorMessage(response);
+    console.error(`[apiFetch] error response ${method} ${url}:`, message);
+    throw new Error(message);
   }
 
   if (response.status === 204) {
